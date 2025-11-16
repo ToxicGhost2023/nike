@@ -1,12 +1,13 @@
-import DarkModeButton from "../components/modules/DarkModeButton";
+import dynamic from "next/dynamic";
+
+const Welcome = dynamic(() => import("@/components/landing/Welcome"), {
+  ssr: false,
+});
 
 export default function Home() {
   return (
     <>
-      <div className="mt-8">
-        <DarkModeButton />
-      </div>
-      <h1 className="bg-blue-500 font-mono text-2xl">Nikey</h1>;
+      <Welcome />
     </>
   );
 }

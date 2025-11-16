@@ -17,10 +17,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`dark ${inter.className}`}>
-      <body
-        classNamclassName="dark"
-        e={`${inter.variable} font-sans antialiased`}
-      >
+      <body e={`${inter.variable} font-sans antialiased`}>
         {children}
         <section className="fixed bottom-9 right-6 z-50">
           <DarkModeButton />
