@@ -1,7 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import Orb from "../reactbits/Orb";
+import dynamic from "next/dynamic";
+const Orb = dynamic(() => import("../reactbits/Orb"), { ssr: false });
+
 import Image from "next/image";
 
 export default function Welcome() {
@@ -47,6 +49,7 @@ export default function Welcome() {
           height={64}
           alt="nike"
           src="/images/nike.png"
+          priority={true}
         />
       </div>
     </div>

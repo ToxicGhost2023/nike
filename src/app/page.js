@@ -1,6 +1,6 @@
 import dynamic from "next/dynamic";
 
-const Welcome = dynamic(() => import("@/components/landing/Welcome"), {
+const Welcome = dynamic(() => import("@/components/welcome/Welcome"), {
   ssr: false,
 });
 
