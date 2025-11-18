@@ -29,7 +29,6 @@
     "react-dom": "^18",
     "react-intersection-observer": "^10.0.0",
     "react-redux": "^9.2.0",
-    "sneaks-api": "^1.2.3",
     "swiper": "^12.0.3",
     "tailwind-merge": "^3.4.0",
     "tailwindcss-animate": "^1.0.7"

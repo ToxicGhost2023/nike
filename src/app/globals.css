@@ -115,7 +115,6 @@ body {
   }
 }
 
-/* Swiper Custom Styles */
 .trending-swiper {
   padding: 1rem 0;
 }
@@ -131,7 +130,6 @@ body {
   }
 }
 
-/* Pagination Bullets */
 .trending-swiper .swiper-pagination-bullet {
   background: hsl(var(--muted-foreground));
   opacity: 0.3;
@@ -144,8 +142,6 @@ body {
   width: 24px;
   border-radius: 4px;
 }
-
-/* Navigation Buttons */
 .trending-swiper .swiper-button-next,
 .trending-swiper .swiper-button-prev {
   color: #70e000;
@@ -176,4 +172,21 @@ body {
   .trending-swiper .swiper-button-prev {
     display: none;
   }
+}
+
+::-webkit-scrollbar {
+  width: 3px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(92, 251, 1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 83, 249, 0.7);
 }

@@ -2,7 +2,6 @@ import Banner from "@/components/landing/Banner";
 import Capabilities from "@/components/landing/Capabilities";
 import Footer from "@/components/landing/Footer";
 import HeaderLanding from "@/components/landing/HeaderLanding";
-import TrendingShoes from "@/components/landing/TrendingShoes";
 import React from "react";
 
 function LandingPage() {
@@ -12,7 +11,6 @@ function LandingPage() {
       <Banner />
       <Capabilities />
 
-      <TrendingShoes />
       <Footer />
     </div>
   );
