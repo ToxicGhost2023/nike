@@ -1,15 +1,24 @@
-import mongoose from "mongoose";
+import { MongoClient } from "mongodb";
 
-const connectDB = async () => {
-  if (mongoose.connections[0].readyState) return;
+const uri = process.env.MONGO_URI;
+const options = {};
 
-  try {
-    await mongoose.connect(process.env.MONGODB_URL);
-    console.log("✅ MongoDB connected successfully");
-  } catch (error) {
-    console.error("❌ MongoDB connection error:", error);
-    throw new Error("MongoDB connection failed");
+let client;
+let clientPromise;
+
+if (!process.env.MONGO_URI) {
+  throw new Error("❌ Please add MONGO_URI in .env");
+}
+
+if (process.env.NODE_ENV === "development") {
+  if (!global._mongoClient) {
+    global._mongoClient = new MongoClient(uri, options);
   }
-};
+  client = global._mongoClient;
+} else {
+  client = new MongoClient(uri, options);
+}
 
-export default connectDB;
+clientPromise = client.connect();
+
+export default clientPromise;

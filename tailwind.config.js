@@ -52,6 +52,9 @@ module.exports = {
         green: "#70e000",
         gn: "#16db65",
       },
+      boxShadow: {
+        glow: "0 0 20px rgba(112, 224, 0, 0.5)",
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",

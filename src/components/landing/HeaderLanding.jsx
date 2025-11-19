@@ -39,31 +39,17 @@ export default function HeaderLanding() {
         <nav className="hidden lg:flex items-center gap-6 xl:gap-8">
           <Link
             prefetch={false}
-            href="/men"
+            href="/#"
             className="text-sm font-medium hover:text-[#70e000] transition-colors"
           >
-            Men
+            Store
           </Link>
           <Link
             prefetch={false}
-            href="/women"
+            href="/#"
             className="text-sm font-medium hover:text-[#70e000] transition-colors"
           >
-            Women
-          </Link>
-          <Link
-            prefetch={false}
-            href="/kids"
-            className="text-sm font-medium hover:text-[#70e000] transition-colors"
-          >
-            Kids
-          </Link>
-          <Link
-            prefetch={false}
-            href="/new"
-            className="text-sm font-medium hover:text-[#70e000] transition-colors"
-          >
-            New Arrivals
+            About
           </Link>
         </nav>
         <div className="hidden lg:flex items-center gap-3">
@@ -80,7 +66,7 @@ export default function HeaderLanding() {
             asChild
             className="bg-gradient-to-r from-[#70e000] to-[#16db65] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap"
           >
-            <Link href="/auth">Login / Register</Link>
+            <Link href="/login">Login / Register</Link>
           </Button>
         </div>
         <div className="hidden md:flex lg:hidden items-center gap-2">
@@ -96,7 +82,7 @@ export default function HeaderLanding() {
             size="sm"
             className="bg-gradient-to-r from-[#70e000] to-[#16db65] text-black font-medium hover:opacity-90"
           >
-            <Link prefetch={false} href="/auth">
+            <Link prefetch={false} href="/login">
               Login
             </Link>
           </Button>
@@ -162,7 +148,7 @@ export default function HeaderLanding() {
                 asChild
                 className="w-full bg-gradient-to-r from-[#70e000] to-[#16db65] text-black font-medium hover:opacity-90 transition-opacity mt-2"
               >
-                <Link prefetch={false} href="/auth">
+                <Link prefetch={false} href="/login">
                   Login / Register
                 </Link>
               </Button>

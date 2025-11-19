@@ -2,6 +2,7 @@ import DarkModeButton from "@/components/modules/DarkModeButton";
 import "./globals.css";
 import { Inter } from "next/font/google";
 import { ReduxProvider } from "@/providers/ReduxProviders";
+import NextAuthProvider from "@/providers/NextAuthProviders";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -19,10 +20,12 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`dark ${inter.className}`}>
       <body e={`${inter.variable} font-sans antialiased`}>
-        <ReduxProvider>{children}</ReduxProvider>
-        <section className="fixed bottom-9 right-6 z-50">
-          <DarkModeButton />
-        </section>
+        <NextAuthProvider>
+          <ReduxProvider>{children}</ReduxProvider>
+          <section className="fixed bottom-9 right-6 z-50">
+            <DarkModeButton />
+          </section>
+        </NextAuthProvider>
       </body>
     </html>
   );

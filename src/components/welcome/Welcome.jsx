@@ -3,11 +3,25 @@
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 const Orb = dynamic(() => import("../reactbits/Orb"), { ssr: false });
-
+import { Spinner } from "@/components/ui/spinner";
 import Image from "next/image";
+import { useState } from "react";
 
 export default function Welcome() {
+  const [loadingStart, setLoadingStart] = useState(false);
+  const [loadingAuth, setLoadingAuth] = useState(false);
+
   const router = useRouter();
+
+  const handleGetStarted = () => {
+    setLoadingStart(true);
+    router.push("/landing");
+  };
+
+  const handleAuth = () => {
+    setLoadingAuth(true);
+    router.push("/auth");
+  };
 
   return (
     <div className="relative w-screen h-screen overflow-hidden">
@@ -30,17 +44,19 @@ export default function Welcome() {
         </p>
         <div className="flex gap-3 sm:gap-4 flex-wrap justify-center pointer-events-auto">
           <button
-            onClick={() => router.push("/landing")}
-            className="px-4 sm:px-6 py-2 sm:py-3 rounded-lg text-black font-light bg-green hover:bg-gn transition duration-500   text-sm sm:text-base"
+            onClick={handleGetStarted}
+            className="px-6 py-3 rounded-lg bg-green text-black transition flex items-center justify-center min-w-28"
+            disabled={loadingStart || loadingAuth}
           >
-            Get Started
+            {loadingStart ? <Spinner className="h-5 w-5" /> : "Get Started"}
           </button>
 
           <button
-            onClick={() => router.push("/auth")}
-            className="px-4 sm:px-6 py-2 sm:py-3 rounded-lg bg-white text-black   transition duration-500 font-light text-sm sm:text-base"
+            onClick={handleAuth}
+            className="px-6 py-3 rounded-lg bg-white text-black transition flex items-center justify-center min-w-28"
+            disabled={loadingStart || loadingAuth}
           >
-            Login / Auth
+            {loadingAuth ? <Spinner className="h-5 w-5" /> : "Login / Auth"}
           </button>
         </div>
         <Image
