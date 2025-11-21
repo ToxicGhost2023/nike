@@ -1,13 +1,12 @@
 import DarkModeButton from "@/components/modules/DarkModeButton";
-import "./globals.css";
-import { Inter } from "next/font/google";
+import { Urbanist } from "next/font/google";
 import { ReduxProvider } from "@/providers/ReduxProviders";
 import NextAuthProvider from "@/providers/NextAuthProviders";
+import "./globals.css";
 
-const inter = Inter({
+const urbanist = Urbanist({
   subsets: ["latin"],
-  weight: ["400", "700"],
-  variable: "--font-inter",
+  weight: ["300", "400", "500", "600", "700"],
   display: "swap",
 });
 
@@ -18,8 +17,8 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`dark ${inter.className}`}>
-      <body e={`${inter.variable} font-sans antialiased`}>
+    <html lang="en" className={`dark ${urbanist.className}`}>
+      <body e={` font-sans antialiased`}>
         <NextAuthProvider>
           <ReduxProvider>{children}</ReduxProvider>
           <section className="fixed bottom-9 right-6 z-50">

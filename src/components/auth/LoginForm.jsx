@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { Spinner } from "../ui/spinner";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -55,7 +56,7 @@ export default function LoginForm() {
             disabled={loading}
             className="w-full bg-green hover:bg-gn text-black font-bold rounded-xl"
           >
-            {loading ? "Loading..." : "Login"}
+            {loading ? <Spinner /> : "Login"}
           </Button>
 
           <Button

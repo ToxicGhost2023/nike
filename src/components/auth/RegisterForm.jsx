@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import { Spinner } from "../ui/spinner";
 
 export default function RegisterForm() {
   const router = useRouter();
@@ -60,7 +61,7 @@ export default function RegisterForm() {
             disabled={loading}
             className="w-full bg-gn hover:bg-green text-black font-bold rounded-xl"
           >
-            {loading ? "Creating..." : "Create Account"}
+            {loading ? <Spinner /> : "Create Account"}
           </Button>
 
           <Button

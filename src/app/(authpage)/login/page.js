@@ -1,4 +1,8 @@
-import LoginForm from "@/components/auth/LoginForm";
+import dynamic from "next/dynamic";
+
+const LoginForm = dynamic(() => import("@/components/auth/LoginForm"), {
+  ssr: false,
+});
 
 export const metadata = {
   title: "Login",
