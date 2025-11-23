@@ -1,16 +1,16 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
-
 import bcrypt from "bcryptjs";
 import clientPromise from "@/lib/connectDB";
 
-const handler = NextAuth({
+export const authOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     }),
+
     CredentialsProvider({
       name: "credentials",
       credentials: {
@@ -56,6 +56,8 @@ const handler = NextAuth({
         token.fullName = user.fullName || profile?.name || "";
         token.role = user.role || "user";
       }
+
+      // Google Create User Automatically
       if (account?.provider === "google") {
         const client = await clientPromise;
         const db = client.db("nikey");
@@ -76,7 +78,6 @@ const handler = NextAuth({
           };
 
           await users.insertOne(newUser);
-
           token.role = "user";
         } else {
           token.role = existing.role;
@@ -92,6 +93,8 @@ const handler = NextAuth({
       return session;
     },
   },
-});
+};
+
+const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST };

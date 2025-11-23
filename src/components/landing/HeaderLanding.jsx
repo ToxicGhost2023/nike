@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Menu, Search, X } from "lucide-react";
+import { Menu, Search, UserStar, X } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -13,9 +13,11 @@ import {
 } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useSession } from "next-auth/react";
 
 export default function HeaderLanding() {
   const [search, setSearch] = useState("");
+  const { data: session, status } = useSession();
 
   return (
     <header className="w-full border-b bg-background/80 backdrop-blur-md sticky top-0 z-50">
@@ -62,12 +64,21 @@ export default function HeaderLanding() {
               className="pl-9 w-48 xl:w-64 focus-visible:ring-[#70e000]"
             />
           </div>
-          <Button
-            asChild
-            className="bg-gradient-to-r from-[#70e000] to-[#16db65] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap"
-          >
-            <Link href="/login">Login / Register</Link>
-          </Button>
+          {session?.user?.role == "admin" ? (
+            <Link
+              href="/admin"
+              className="bg-gradient-to-r from-[#e03f00] to-[#dbb416] text-black font-medium hover:opacity-90 transition-opacity p-[5px] rounded-md flex items-center justify-center"
+            >
+              <UserStar />
+            </Link>
+          ) : (
+            <Button
+              asChild
+              className="bg-gradient-to-r from-[#70e000] to-[#16db65] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap"
+            >
+              <Link href="/login">Login / Register</Link>
+            </Button>
+          )}
         </div>
         <div className="hidden md:flex lg:hidden items-center gap-2">
           <Button
