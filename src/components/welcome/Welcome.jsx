@@ -26,7 +26,7 @@ export default function Welcome() {
   return (
     <div className="relative w-screen h-screen overflow-hidden">
       <div className="absolute inset-0 w-full h-full flex items-center justify-center z-0">
-        <div className="w-full h-full md:h-[600px] lg:h-[800px] relative">
+        <div className="w-full h-1/2 md:h-[600px] lg:h-[600px] relative">
           <Orb
             hoverIntensity={1.5}
             rotateOnHover={true}

@@ -1,13 +1,21 @@
 "use client";
 
-import SideBar from "@/components/adminPanel/SideBar";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarLayout } from "@/components/adminPanel/SideBar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 export default function AdminLayout({ children }) {
   return (
-    <SidebarProvider>
+    <SidebarProvider
+      toggleable
+      defaultCollapsed={false}
+      collapsedWidth="w-20"
+      expandedWidth="w-64"
+    >
       <div className="flex">
-        <SideBar />
-        <main className="flex-1 p-6">{children}</main>
+        <SidebarLayout />
+        <main className="flex-1 p-6">
+          <SidebarTrigger className="mb-12" />
+          {children}
+        </main>
       </div>
     </SidebarProvider>
   );

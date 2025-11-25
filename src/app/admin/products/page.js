@@ -1,7 +1,11 @@
-import React from "react";
+import Header from "@/components/adminPanel/manageProducts/Header";
 
 function ProductsAdminPage() {
-  return <div>ProductsAdminPage</div>;
+  return (
+    <div>
+      <Header />
+    </div>
+  );
 }
 
 export default ProductsAdminPage;

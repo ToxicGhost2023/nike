@@ -111,8 +111,6 @@ export default function DashBoardAdminPage() {
           </table>
         </div>
       </div>
-
-      {/* Quick Actions */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <button className="bg-blue-500 text-white rounded-lg p-4 hover:bg-blue-600 transition shadow flex items-center justify-center gap-2">
           Add Product
