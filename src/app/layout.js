@@ -11,8 +11,16 @@ const urbanist = Urbanist({
 });
 
 export const metadata = {
-  title: "My Shop",
+  title: "nikye",
+  icons: {
+    icon: "/images/logo.png",
+  },
   description: "Modern e-commerce website",
+  openGraph: {
+    title: "nikye",
+    description: "Modern e-commerce website",
+    images: ["/images/nike.png"],
+  },
 };
 
 export default function RootLayout({ children }) {

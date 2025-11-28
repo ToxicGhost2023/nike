@@ -6,7 +6,6 @@ import { useState, lazy, Suspense } from "react";
 const ProductsList = lazy(() => import("./ProductsList"));
 const AddProducts = lazy(() => import("./AddProducts"));
 const EditProducts = lazy(() => import("./EditProducts"));
-const DeleteProducts = lazy(() => import("./DeleteProducts"));
 
 export default function Header() {
   const [view, setView] = useState("ProductsList");
@@ -19,8 +18,6 @@ export default function Header() {
         return <AddProducts />;
       case "EditProducts":
         return <EditProducts />;
-      case "DeleteProducts":
-        return <DeleteProducts />;
       default:
         return <div>nothing found</div>;
     }
@@ -49,13 +46,6 @@ export default function Header() {
           onClick={() => setView("EditProducts")}
         >
           EditProducts
-        </button>
-        <button
-          className="px-4 py-2 rounded-md border border-green  shadow-md 
-                 hover:shadow-[0_0_20px_#70e000] transition-shadow duration-300"
-          onClick={() => setView("DeleteProducts")}
-        >
-          DeleteProducts
         </button>
       </div>
 

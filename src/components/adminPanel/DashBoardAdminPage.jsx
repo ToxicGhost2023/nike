@@ -36,27 +36,19 @@ export default function DashBoardAdminPage() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-        Admin Dashboard
-      </h1>
+      <h1 className="text-2xl font-bold ">Admin Dashboard</h1>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((item) => (
           <div
             key={item.label}
-            className="flex items-center gap-4 bg-white dark:bg-gray-800 p-4 rounded-lg shadow hover:shadow-md transition"
+            className="flex items-center gap-4 p-4 rounded-lg shadow hover:shadow-md transition"
           >
-            <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded-full">
-              {item.icon}
-            </div>
+            <div className="p-3 rounded-full">{item.icon}</div>
             <div>
-              <p className="text-gray-500 dark:text-gray-300 text-sm">
-                {item.label}
-              </p>
-              <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                {item.value}
-              </p>
+              <p className=" text-sm">{item.label}</p>
+              <p className="text-lg font-semibold ">{item.value}</p>
             </div>
           </div>
         ))}
@@ -64,23 +56,29 @@ export default function DashBoardAdminPage() {
 
       {/* Recent Orders Table */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          Recent Orders
-        </h2>
+        <h2 className="text-lg font-semibold  mb-4">Recent Orders</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-left table-auto border-collapse">
             <thead>
               <tr className="bg-gray-100 dark:bg-gray-700">
-                <th className="px-4 py-2 text-gray-600 dark:text-gray-300">
+                <th
+                  className="px-4 py-2 >
                   Order ID
                 </th>
-                <th className="px-4 py-2 text-gray-600 dark:text-gray-300">
+                <th className="
+                  px-4
+                  py-2
+                >
                   User
                 </th>
-                <th className="px-4 py-2 text-gray-600 dark:text-gray-300">
+                <th
+                  className="px-4 py-2 >
                   Total
                 </th>
-                <th className="px-4 py-2 text-gray-600 dark:text-gray-300">
+                <th className="
+                  px-4
+                  py-2
+                >
                   Status
                 </th>
               </tr>
