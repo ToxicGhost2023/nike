@@ -19,16 +19,59 @@ export const createProduct = createAsyncThunk(
 );
 
 // --- گرفتن همه محصولات ---
+// store/Slice/productSlice.js
+
 export const getAllProducts = createAsyncThunk(
   "products/getAllProducts",
-  async ({ page = 1, limit = 12, filters = {} } = {}, { rejectWithValue }) => {
+  async (
+    { page = 1, limit = 100, filters = {}, search = "" } = {},
+    { rejectWithValue }
+  ) => {
     try {
-      const params = new URLSearchParams({ page, limit, ...filters });
-      const res = await axios.get(`/api/products?${params}`);
+      const params = {
+        page: page.toString(),
+        limit: limit.toString(),
+      };
+
+      // فقط فیلترهای معتبر رو اضافه کن
+      if (search && search.trim()) {
+        params.search = search.trim();
+      }
+
+      // اضافه کردن فیلترها فقط اگر مقدار معتبر داشتن
+      Object.keys(filters).forEach((key) => {
+        const value = filters[key];
+        if (
+          value !== undefined &&
+          value !== null &&
+          value !== "" &&
+          value !== "all"
+        ) {
+          params[key] = value.toString();
+        }
+      });
+
+      const query = new URLSearchParams(params);
+      const res = await axios.get(`/api/products?${query}`);
+
       return res.data;
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.error || "Failed to fetch products"
+      );
+    }
+  }
+);
+
+export const getProductById = createAsyncThunk(
+  "products/getProductById",
+  async (productId, { rejectWithValue }) => {
+    try {
+      const res = await axios.get(`/api/products/${productId}`);
+      return res.data.product;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.error || "Failed to fetch product"
       );
     }
   }
@@ -68,16 +111,21 @@ const productSlice = createSlice({
   name: "products",
   initialState: {
     products: [],
+    currentProduct: null, // محصول فعلی برای صفحه جزئیات
     loading: false,
+    loadingProduct: false, // لودینگ مخصوص یک محصول
     loadingCreate: false,
     loadingUpdate: false,
     loadingDelete: false,
     successCreate: false,
     error: null,
+    errorProduct: null, // خطای مخصوص یک محصول
     errorCreate: null,
     errorUpdate: null,
     errorDelete: null,
     pagination: { page: 1, limit: 12, total: 0, pages: 0 },
+    search: "",
+    filters: {},
   },
   reducers: {
     clearErrors: (state) => {
@@ -89,6 +137,16 @@ const productSlice = createSlice({
     clearCreateSuccess: (state) => {
       state.successCreate = false;
     },
+    clearCurrentProduct: (state) => {
+      state.currentProduct = null;
+      state.errorProduct = null;
+    },
+    setSearch: (state, action) => {
+      state.search = action.payload;
+    },
+    setFilters: (state, action) => {
+      state.filters = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -98,12 +156,24 @@ const productSlice = createSlice({
       })
       .addCase(getAllProducts.fulfilled, (state, action) => {
         state.loading = false;
-        state.products = action.payload.products;
-        state.pagination = action.payload.pagination;
+        state.products = action.payload.products || [];
+        state.pagination = action.payload.pagination || state.pagination;
       })
       .addCase(getAllProducts.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      .addCase(getProductById.pending, (state) => {
+        state.loadingProduct = true;
+        state.errorProduct = null;
+      })
+      .addCase(getProductById.fulfilled, (state, action) => {
+        state.loadingProduct = false;
+        state.currentProduct = action.payload;
+      })
+      .addCase(getProductById.rejected, (state, action) => {
+        state.loadingProduct = false;
+        state.errorProduct = action.payload;
       })
 
       // Create
@@ -150,5 +220,11 @@ const productSlice = createSlice({
   },
 });
 
-export const { clearErrors, clearCreateSuccess } = productSlice.actions;
+export const {
+  clearErrors,
+  clearCreateSuccess,
+  clearCurrentProduct,
+  setSearch,
+  setFilters,
+} = productSlice.actions;
 export default productSlice.reducer;

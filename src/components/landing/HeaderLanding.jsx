@@ -41,14 +41,14 @@ export default function HeaderLanding() {
         <nav className="hidden lg:flex items-center gap-6 xl:gap-8">
           <Link
             prefetch={false}
-            href="/#"
+            href="/shop"
             className="text-sm font-medium hover:text-[#70e000] transition-colors"
           >
-            Store
+            Shop
           </Link>
           <Link
             prefetch={false}
-            href="/#"
+            href="/about"
             className="text-sm font-medium hover:text-[#70e000] transition-colors"
           >
             About

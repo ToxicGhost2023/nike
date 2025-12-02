@@ -119,3 +119,26 @@ export async function PATCH(req, { params }) {
     );
   }
 }
+export async function GET(req, { params }) {
+  try {
+    await mongooseDB();
+    const { id } = params;
+
+    const product = await Product.findById(id).lean();
+
+    if (!product) {
+      return Response.json(
+        { success: false, error: "Product not found" },
+        { status: 404 }
+      );
+    }
+
+    return Response.json({ success: true, product }, { status: 200 });
+  } catch (error) {
+    console.error("Get product error:", error);
+    return Response.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    );
+  }
+}

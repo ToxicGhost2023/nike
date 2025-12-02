@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Home, ShoppingCart, Users } from "lucide-react";
+import { Box, Home, HomeIcon, ShoppingCart, Users } from "lucide-react";
 
 import {
   Sidebar,
@@ -30,6 +30,11 @@ const items = [
     label: "Orders",
     href: "/admin/orders",
     icon: <ShoppingCart className="h-4 w-4" />,
+  },
+  {
+    label: "Home",
+    href: "/landing",
+    icon: <HomeIcon className="h-4 w-4 text-green" />,
   },
 ];
 
