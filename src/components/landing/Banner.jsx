@@ -49,7 +49,11 @@ export default function Banner() {
                 size="lg"
                 className="bg-gradient-to-r from-[#70e000] to-[#16db65] text-black font-semibold hover:opacity-90 hover:shadow-xl hover:shadow-[#70e000]/30 transition-all duration-300 group text-sm sm:text-base h-11 sm:h-12 px-6 sm:px-8 shadow-lg shadow-[#70e000]/25"
               >
-                <Link href="/shop" className="flex items-center gap-2">
+                <Link
+                  prefetch={true}
+                  href="/shop"
+                  className="flex items-center gap-2"
+                >
                   Shop Now
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
@@ -61,7 +65,9 @@ export default function Banner() {
                 variant="outline"
                 className="border-[#70e000]/50 hover:bg-[#70e000]/10 hover:border-[#70e000] transition-all duration-300 text-sm sm:text-base h-11 sm:h-12 px-6 sm:px-8"
               >
-                <Link href="/new">View Collection</Link>
+                <Link prefetch={true} href="/new">
+                  View Collection
+                </Link>
               </Button>
             </div>
 

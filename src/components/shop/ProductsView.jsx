@@ -1,206 +1,238 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  ShoppingBag,
-  ExternalLink,
-  Star,
-  Check,
-  TrendingUp,
-  X,
+  ShoppingCart,
+  ChevronLeft,
+  ChevronRight,
+  BookImage,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import Image from "next/image";
+import Link from "next/link";
 
 export default function ProductView({ product, isOpen, onClose }) {
-  const router = useRouter();
-  const [selectedVariant, setSelectedVariant] = useState(0);
+  const [activeImage, setActiveImage] = useState("");
+  const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
+
+  // Reset state when product changes
+  useEffect(() => {
+    if (product) {
+      setSelectedVariantIndex(0);
+      const firstImage =
+        product.variants?.[0]?.images?.[0] || product.mainImage;
+      setActiveImage(firstImage);
+    }
+  }, [product]);
+
+  // Update image when variant changes
+  useEffect(() => {
+    if (product && product.variants[selectedVariantIndex]) {
+      const variantImages = product.variants[selectedVariantIndex].images;
+      if (variantImages && variantImages.length > 0) {
+        setActiveImage(variantImages[0]);
+      } else {
+        setActiveImage(product.mainImage);
+      }
+    }
+  }, [selectedVariantIndex, product]);
 
   if (!product) return null;
 
-  const currentVariant =
-    product.variants?.[selectedVariant] || product.variants?.[0];
-  const price = currentVariant?.finalPrice || currentVariant?.price || 0;
-  const isDiscounted = currentVariant?.discount > 0;
+  const currentVariant = product.variants[selectedVariantIndex];
+  const gallery =
+    currentVariant?.images?.length > 0
+      ? currentVariant.images
+      : [product.mainImage];
 
-  const goToProductPage = () => {
-    onClose();
-    router.push(`/shop/${product._id}`);
+  const handleNextImage = () => {
+    const currentIndex = gallery.indexOf(activeImage);
+    const nextIndex = (currentIndex + 1) % gallery.length;
+    setActiveImage(gallery[nextIndex]);
+  };
+
+  const handlePrevImage = () => {
+    const currentIndex = gallery.indexOf(activeImage);
+    const prevIndex =
+      currentIndex === 0 ? gallery.length - 1 : currentIndex - 1;
+    setActiveImage(gallery[prevIndex]);
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto p-0">
-        <div className="grid md:grid-cols-2 gap-0">
-          {/* تصویر محصول */}
-          <div className="relative aspect-square bg-zinc-100 dark:bg-zinc-950 overflow-hidden">
-            {/* بج‌ها */}
-            <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
-              {product.bestSeller && (
-                <Badge className="bg-white text-black font-black shadow-lg flex items-center gap-1">
-                  <TrendingUp size={14} />
-                  پرفروش
-                </Badge>
-              )}
-              {isDiscounted && (
-                <Badge className="p-2 bg-gradient-to-r from-red-500 to-pink-500 text-white font-black">
-                  {currentVariant.discount}% discount
-                </Badge>
-              )}
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-5xl p-0 gap-0 overflow-hidden rounded-3xl h-[90vh] md:h-[600px] flex flex-col md:flex-row bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border border-white/20 shadow-2xl">
+        {/* Left Side: Image Gallery */}
+        <div className="w-full md:w-1/2 h-[45%] md:h-full relative flex flex-col bg-white/30 dark:bg-black/20">
+          {/* Main Image Area */}
+          <div className="flex-1 relative flex items-center justify-center p-4 group">
+            <div className="relative w-full h-full flex items-center justify-center">
+              <Image
+                width={500}
+                height={500}
+                src={activeImage}
+                alt={product.title}
+                className="max-w-full max-h-full object-contain drop-shadow-xl transition-transform duration-300 hover:scale-105"
+              />
             </div>
 
-            {/* دکمه بستن */}
-            <button
-              onClick={onClose}
-              className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white dark:bg-zinc-900 
-                shadow-lg flex items-center justify-center hover:bg-red-500 hover:text-white transition-all"
-            >
-              <X size={20} />
-            </button>
-
-            <img
-              src={product.mainImage}
-              alt={product.title}
-              className="w-full h-full object-cover"
-            />
+            {/* Navigation Arrows - Glass Style */}
+            {gallery.length > 1 && (
+              <>
+                <button
+                  onClick={handlePrevImage}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/50 backdrop-blur-md hover:bg-white/90 transition shadow-lg text-zinc-800"
+                >
+                  <ChevronLeft className="w-6 h-6" />
+                </button>
+                <button
+                  onClick={handleNextImage}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/50 backdrop-blur-md hover:bg-white/90 transition shadow-lg text-zinc-800"
+                >
+                  <ChevronRight className="w-6 h-6" />
+                </button>
+              </>
+            )}
           </div>
 
-          {/* اطلاعات محصول */}
-          <div className="p-6 md:p-10 flex flex-col">
-            {/* هدر */}
-            <div className="flex justify-between items-start mb-6">
-              <Badge
-                variant="outline"
-                className="text-[#16db65] border-[#16db65] font-black px-4 py-1.5"
-              >
-                {product.brand}
-              </Badge>
-              <div className="flex items-center gap-1 bg-yellow-50 dark:bg-yellow-900/20 px-3 py-1.5 rounded-full">
-                <Star size={16} fill="#eab308" className="text-yellow-500" />
-                <span className="text-sm font-bold">4.8</span>
-              </div>
+          {/* Thumbnails - Glass Border */}
+          {gallery.length > 1 && (
+            <div className="h-24 px-4 flex items-center gap-3 overflow-x-auto border-t border-white/20 bg-white/10 backdrop-blur-sm">
+              {gallery.map((img, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setActiveImage(img)}
+                  className={cn(
+                    "relative w-16 h-16 rounded-xl overflow-hidden border-2 flex-shrink-0 transition-all shadow-sm",
+                    activeImage === img
+                      ? "border-blue-600 opacity-100 ring-2 ring-blue-600/20 scale-105"
+                      : "border-transparent opacity-70 hover:opacity-100 hover:scale-105"
+                  )}
+                >
+                  <Image
+                    width={100}
+                    height={100}
+                    src={img}
+                    alt="thumb"
+                    className="w-full h-full object-cover"
+                    priority={false}
+                  />
+                </button>
+              ))}
             </div>
+          )}
+        </div>
 
-            {/* عنوان */}
-            <DialogHeader className="mb-4">
-              <DialogTitle className="text-3xl md:text-4xl font-black text-right">
-                {product.title}
-              </DialogTitle>
-            </DialogHeader>
+        {/* Right Side: Details */}
+        <div className="w-full md:w-1/2 h-[55%] md:h-full p-6 md:p-8 overflow-y-auto relative flex flex-col bg-white/40 dark:bg-black/20">
+          <DialogClose
+            className="absolute top-4 right-4 p-2 bg-black/5 hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/20 rounded-full transition"
+            onClick={onClose}
+          ></DialogClose>
 
-            {/* مدل */}
-            <p className="flex gap-2  text-lg text-zinc-500 dark:text-zinc-400 mb-6">
-              <span className="text-orange-500 font-bold rounded-md   ">
-                model:
-              </span>
-              {product.model}
-            </p>
+          <div className="mb-6">
+            <Badge variant="outline" className="mb-2 border-zinc-400/50">
+              {product.brand}
+            </Badge>
+            <h2 className="text-3xl md:text-4xl font-black text-zinc-800 dark:text-zinc-100 mt-1">
+              {product.title}
+            </h2>
+            <p className="text-zinc-500 font-medium">{product.model}</p>
+          </div>
 
-            {/* قیمت */}
-            <div className="mb-8 pb-6 border-b-2 border-zinc-200 dark:border-zinc-800">
-              <div className="flex items-baseline gap-3">
-                <span className="text-4xl md:text-5xl font-black text-[#16db65]">
-                  ${price.toLocaleString()}
+          {/* Price */}
+          <div className="flex items-center gap-3 mb-8 bg-white/50 dark:bg-black/30 p-4 rounded-2xl w-fit backdrop-blur-sm">
+            <span className="text-3xl font-bold text-green-600">
+              ${currentVariant.finalPrice.toLocaleString()}
+            </span>
+            {currentVariant.discount > 0 && (
+              <>
+                <span className="text-lg text-zinc-400 line-through decoration-2">
+                  ${currentVariant.price}
                 </span>
-                {isDiscounted && (
-                  <span className="text-2xl text-zinc-400 line-through">
-                    ${currentVariant.price.toLocaleString()}
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* انتخاب رنگ */}
-            {product.variants && product.variants.length > 1 && (
-              <div className="mb-8">
-                <label className="block text-sm font-bold uppercase text-zinc-600 dark:text-zinc-400 mb-4">
-                  choose color
-                </label>
-                <div className="flex flex-wrap gap-3">
-                  {product.variants.map((variant, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setSelectedVariant(index)}
-                      className={`
-                        relative w-14 h-14 rounded-xl shadow-md hover:shadow-lg transition-all
-                        border-4 transform hover:scale-110
-                        ${
-                          selectedVariant === index
-                            ? "border-[#16db65] ring-4 ring-[#16db65]/30 scale-110"
-                            : "border-white dark:border-zinc-800"
-                        }
-                      `}
-                      style={{ backgroundColor: variant.colorCode }}
-                      title={variant.colorName}
-                    >
-                      {selectedVariant === index && (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <Check
-                            size={24}
-                            className="text-white drop-shadow-lg"
-                          />
-                        </div>
-                      )}
-                    </button>
-                  ))}
-                </div>
-                {currentVariant && (
-                  <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">
-                    <span className="font-bold">
-                      {currentVariant.colorName}
-                    </span>
-                  </p>
-                )}
-              </div>
+                <Badge
+                  variant="destructive"
+                  className="text-sm font-bold shadow-md"
+                >
+                  {currentVariant.discount}% OFF
+                </Badge>
+              </>
             )}
+          </div>
 
-            {/* موجودی */}
-            {currentVariant && (
-              <div className="mb-8">
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="text-zinc-600 dark:text-zinc-400">
-                    count:
-                  </span>
+          {/* Color Selection */}
+          <div className="mb-6">
+            <label className="text-sm font-bold text-zinc-600 dark:text-zinc-300 block mb-3 uppercase tracking-wider">
+              Select Color
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {product.variants.map((variant, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setSelectedVariantIndex(idx)}
+                  className={cn(
+                    "px-4 py-2 rounded-xl border-2 flex items-center gap-2 transition-all font-medium",
+                    selectedVariantIndex === idx
+                      ? "border-zinc-900 bg-zinc-900 text-white shadow-lg scale-105"
+                      : "border-zinc-200/60 bg-white/50 hover:border-zinc-300 hover:bg-white"
+                  )}
+                >
                   <span
-                    className={`font-bold ${
-                      currentVariant.stock > 0
-                        ? "text-green-500"
-                        : "text-red-500"
-                    }`}
-                  >
-                    {currentVariant.stock > 0
-                      ? `${currentVariant.stock} `
-                      : "nothing"}
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {/* دکمه‌ها */}
-            <div className="mt-auto space-y-3">
-              <Button
-                onClick={goToProductPage}
-                className="w-full bg-[#16db65] hover:bg-[#12b541] text-white font-bold h-14 rounded-xl shadow-lg hover:shadow-xl transition-all"
-              >
-                <ExternalLink size={20} className="ml-2" />
-                Go to Deatails
-              </Button>
-
-              <Button
-                variant="outline"
-                className="w-full border-2 border-[#16db65] text-[#16db65] hover:bg-[#16db65] hover:text-white font-bold h-14 rounded-xl transition-all"
-              >
-                <ShoppingBag size={20} className="ml-2" />
-                Add to shopping cart
-              </Button>
+                    className="w-4 h-4 rounded-full border border-black/10 shadow-sm"
+                    style={{ backgroundColor: variant.colorCode }}
+                  />
+                  {variant.color}
+                </button>
+              ))}
             </div>
+          </div>
+
+          {/* Info Grid */}
+          <div className="grid grid-cols-2 gap-4 mb-8">
+            <div className="p-4 rounded-2xl bg-white/50 dark:bg-white/5 border border-white/20 backdrop-blur-sm">
+              <span className="text-xs text-zinc-500 font-bold uppercase tracking-wider">
+                Size
+              </span>
+              <div className="text-xl font-black mt-1">
+                {currentVariant.size}
+              </div>
+            </div>
+            <div className="p-4 rounded-2xl bg-white/50 dark:bg-white/5 border border-white/20 backdrop-blur-sm">
+              <span className="text-xs text-zinc-500 font-bold uppercase tracking-wider">
+                Status
+              </span>
+              <div
+                className={cn(
+                  "text-xl font-black mt-1",
+                  currentVariant.stock > 0 ? "text-emerald-600" : "text-red-500"
+                )}
+              >
+                {currentVariant.stock > 0 ? "In Stock" : "Sold Out"}
+              </div>
+            </div>
+          </div>
+
+          {/* Action Button */}
+          <div className="flex gap-3 mt-auto pt-4">
+            <Button
+              variant="outline"
+              className="flex-1 h-14 text-lg font-bold rounded-xl border-2 border-zinc-200 hover:bg-zinc-50 hover:text-zinc-900 bg-transparent"
+              disabled={currentVariant.stock <= 0}
+            >
+              <BookImage className="mr-2 w-5 h-5" />
+              <Link prefetch={true} href={`/shop/${product._id}`}>
+                Details
+              </Link>
+            </Button>
+            <Button
+              className="flex-[2] h-14 text-lg font-bold rounded-xl bg-orange-600 hover:bg-orange-700 text-white shadow-lg shadow-orange-600/20"
+              disabled={currentVariant.stock <= 0}
+            >
+              <ShoppingCart className="mr-2 w-5 h-5" />
+              {currentVariant.stock > 0 ? "Add to Cart" : "Out of Stock"}
+            </Button>
           </div>
         </div>
       </DialogContent>

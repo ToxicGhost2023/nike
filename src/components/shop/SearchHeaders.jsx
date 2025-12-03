@@ -80,7 +80,7 @@ export default function SearchHeader() {
       {search && (
         <div className="text-center mt-4 text-sm md:text-base text-zinc-600 dark:text-zinc-400">
           Search results for:{" "}
-          <span className="font-bold text-[#16db65]">"{search}"</span>
+          <span className="font-bold text-[#16db65]">{search}</span>
         </div>
       )}
     </div>

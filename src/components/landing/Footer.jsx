@@ -47,7 +47,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 mb-12">
           {/* Brand Section */}
           <div className="space-y-4">
-            <Link href="/" className="inline-block">
+            <Link prefetch={true} href="/" className="inline-block">
               <h3 className="text-2xl font-bold bg-gradient-to-r from-[#70e000] to-[#16db65] bg-clip-text text-transparent">
                 Nike Store
               </h3>
@@ -90,6 +90,7 @@ export default function Footer() {
                 <li key={link.name}>
                   <Link
                     href={link.href}
+                    prefetch={true}
                     className="text-sm text-muted-foreground hover:text-[#70e000] transition-colors inline-block hover:-translate-x-1 duration-200"
                   >
                     {link.name}
@@ -107,6 +108,7 @@ export default function Footer() {
                 <li key={link.name}>
                   <Link
                     href={link.href}
+                    prefetch={true}
                     className="text-sm text-muted-foreground hover:text-[#16db65] transition-colors inline-block hover:-translate-x-1 duration-200"
                   >
                     {link.name}
@@ -132,7 +134,8 @@ export default function Footer() {
                 {socialLinks.map((social) => {
                   const Icon = social.icon;
                   return (
-                    <a
+                    <Link
+                      prefetch={true}
                       key={social.label}
                       href={social.href}
                       target="_blank"
@@ -141,7 +144,7 @@ export default function Footer() {
                       className="w-9 h-9 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-[#70e000] hover:border-[#70e000] hover:scale-110 transition-all duration-200"
                     >
                       <Icon className="w-4 h-4" />
-                    </a>
+                    </Link>
                   );
                 })}
               </div>

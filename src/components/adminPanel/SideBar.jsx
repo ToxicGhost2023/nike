@@ -49,7 +49,7 @@ export default function SidebarLayout() {
               {items.map((item) => (
                 <SidebarMenuItem key={item.label}>
                   <SidebarMenuButton asChild>
-                    <Link href={item.href}>
+                    <Link href={item.href} prefetch={true}>
                       {item.icon}
                       <span>{item.label}</span>
                     </Link>
