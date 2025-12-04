@@ -44,6 +44,8 @@ export default function ProductsDetails() {
   const [quantity, setQuantity] = useState(1);
   const [allImages, setAllImages] = useState([]);
 
+  console.log(allImages);
+
   // دریافت محصول از API
   useEffect(() => {
     if (params.id) {
@@ -55,28 +57,35 @@ export default function ProductsDetails() {
     };
   }, [params.id, dispatch]);
 
-  // جمع‌آوری همه عکس‌ها
   useEffect(() => {
-    if (product) {
-      const images = [];
+    if (!product || !product.variants) return;
 
-      // اضافه کردن mainImage
-      if (product.mainImage) {
-        images.push(product.mainImage);
-      }
+    const images = [];
 
-      // اضافه کردن عکس‌های variant فعلی
-      if (product.variants && product.variants[selectedVariant]?.images) {
-        product.variants[selectedVariant].images.forEach((img) => {
-          if (!images.includes(img)) {
-            images.push(img);
-          }
+    // عکس اصلی
+    if (product.mainImage) {
+      images.push(product.mainImage);
+    }
+
+    // عکس‌های همون رنگ انتخاب‌شده اول بیان
+    const selected = product.variants[selectedVariant];
+    if (selected?.images?.length) {
+      selected.images.forEach((img) => {
+        if (!images.includes(img)) images.push(img);
+      });
+    }
+
+    // بعد عکس‌های بقیه رنگ‌ها
+    product.variants.forEach((variant, i) => {
+      if (i !== selectedVariant && variant.images?.length) {
+        variant.images.forEach((img) => {
+          if (!images.includes(img)) images.push(img);
         });
       }
+    });
 
-      setAllImages(images);
-      setSelectedImage(0); // ریست به اولین عکس
-    }
+    setAllImages(images);
+    setSelectedImage(0);
   }, [product, selectedVariant]);
 
   // Navigation بین عکس‌ها
@@ -188,13 +197,13 @@ export default function ProductsDetails() {
                 )}
                 {isDiscounted && (
                   <Badge className="bg-gradient-to-r from-red-500 to-pink-500 text-white font-black px-3 py-1.5">
-                    {currentVariant.discount}% OFF
+                    {currentVariant?.discount}% OFF
                   </Badge>
                 )}
               </div>
 
               {/* Navigation Arrows */}
-              {allImages.length > 1 && (
+              {allImages?.length > 1 && (
                 <>
                   <button
                     onClick={prevImage}
@@ -216,21 +225,24 @@ export default function ProductsDetails() {
               )}
 
               {/* Image Counter */}
-              {allImages.length > 1 && (
+              {allImages?.length > 1 && (
                 <div className="absolute bottom-6 right-6 z-10 bg-black/60 text-white px-4 py-2 rounded-full text-sm font-bold">
-                  {selectedImage + 1} / {allImages.length}
+                  {selectedImage} / {allImages.length}
                 </div>
               )}
 
-              <img
-                src={allImages[selectedImage] || "/placeholder.png"}
+              <Image
+                width={800}
+                height={800}
+                priority
+                src={allImages[selectedImage]}
                 alt={product.title}
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
             </div>
 
             {/* Thumbnails */}
-            {allImages.length > 1 && (
+            {allImages.length > 0 && (
               <div className="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-4 gap-3">
                 {allImages.map((img, index) => (
                   <button
@@ -245,7 +257,10 @@ export default function ProductsDetails() {
                       }
                     `}
                   >
-                    <img
+                    <Image
+                      width={200}
+                      height={200}
+                      priority
                       src={img}
                       alt=""
                       className="w-full h-full object-cover"
@@ -307,13 +322,13 @@ export default function ProductsDetails() {
             </div>
 
             {/* Color Selection */}
-            {product.variants && product.variants.length > 0 && (
+            {product?.variants && product.variants.length > 0 && (
               <div className="mb-8">
                 <label className="block text-sm font-bold uppercase text-zinc-600 dark:text-zinc-400 mb-4 tracking-wider">
                   Select Color
                 </label>
                 <div className="flex flex-wrap gap-3">
-                  {product.variants.map((variant, index) => (
+                  {product?.variants.map((variant, index) => (
                     <button
                       key={index}
                       onClick={() => setSelectedVariant(index)}
