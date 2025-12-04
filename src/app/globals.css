@@ -206,3 +206,9 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 83, 249, 0.7);
 }
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

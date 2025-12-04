@@ -2,6 +2,8 @@
 
 import { Suspense, lazy } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ArrowBigLeftDash } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const SearchHeader = lazy(() => import("@/components/shop/SearchHeaders"));
 const FilterProducts = lazy(() => import("@/components/shop/FilterProducts"));
@@ -53,12 +55,20 @@ function ProductsListSkeleton() {
 }
 
 export default function ProductsPage() {
+  const router = useRouter();
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-950 dark:to-zinc-900">
+      <button
+        onClick={() => router.push("/landing")}
+        className="transition-all duration-150 flex bg-green text-black p-2 rounded-xl m-3 hover:bg-gray-950 hover:text-gray-600"
+      >
+        <ArrowBigLeftDash />
+        Back To Home
+      </button>
       <div className="pt-8 md:pt-16 pb-4 md:pb-8">
         <div className="text-center mb-8 md:mb-12 px-4">
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-black mb-4 bg-gradient-to-r from-[#16db65] to-[#12b541] bg-clip-text text-transparent">
-            Products Store
+            Store
           </h1>
           <p className="text-lg md:text-xl text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto">
             Find the best products at the best prices

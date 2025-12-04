@@ -3,6 +3,7 @@ import { Urbanist } from "next/font/google";
 import { ReduxProvider } from "@/providers/ReduxProviders";
 import NextAuthProvider from "@/providers/NextAuthProviders";
 import "./globals.css";
+import LoaderProvider from "@/providers/LoaderProvider";
 
 const urbanist = Urbanist({
   subsets: ["latin"],
@@ -28,7 +29,9 @@ export default function RootLayout({ children }) {
     <html lang="en" className="dark">
       <body className={`${urbanist.className} font-sans antialiased`}>
         <NextAuthProvider>
-          <ReduxProvider>{children}</ReduxProvider>
+          <ReduxProvider>
+            <LoaderProvider>{children}</LoaderProvider>
+          </ReduxProvider>
           <section className="fixed bottom-9 right-6 z-50">
             <DarkModeButton />
           </section>

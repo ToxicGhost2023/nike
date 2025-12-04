@@ -17,7 +17,7 @@ import { useSession } from "next-auth/react";
 
 export default function HeaderLanding() {
   const [search, setSearch] = useState("");
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
 
   return (
     <header className="w-full border-b bg-background/80 backdrop-blur-md sticky top-0 z-50">

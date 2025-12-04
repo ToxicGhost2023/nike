@@ -1,3 +1,5 @@
+// app/api/products/route.js
+
 import mongooseDB from "@/lib/mongoosDB";
 import Product from "@/models/Products";
 import cloudinary from "@/utils/cloudinary";
@@ -7,7 +9,6 @@ export async function POST(req) {
     await mongooseDB();
     const formData = await req.formData();
 
-    // 1. Extract basic info
     const productData = {
       title: formData.get("title")?.toString().trim(),
       model: formData.get("model")?.toString().trim(),
@@ -17,8 +18,6 @@ export async function POST(req) {
       bestSeller: formData.get("bestSeller") === "true",
     };
 
-    // 2. Process Variants and Images
-    // We need to group form entries by index: variants[0][color], variants[0][images]...
     const variantsMap = {};
 
     for (const [key, value] of formData.entries()) {
@@ -33,7 +32,6 @@ export async function POST(req) {
         }
 
         if (field === "images" && value instanceof File) {
-          // Handle Image Upload to Cloudinary
           const arrayBuffer = await value.arrayBuffer();
           const buffer = Buffer.from(arrayBuffer);
           const base64Data = `data:${value.type};base64,${buffer.toString(
@@ -46,7 +44,6 @@ export async function POST(req) {
 
           variantsMap[index].images.push(uploadResult.secure_url);
         } else if (field !== "images") {
-          // Handle Text Fields
           if (["price", "discount", "stock"].includes(field)) {
             variantsMap[index][field] = Number(value) || 0;
           } else {
@@ -56,7 +53,6 @@ export async function POST(req) {
       }
     }
 
-    // Convert map to array
     const variants = Object.values(variantsMap);
 
     if (variants.length === 0) {
@@ -66,7 +62,6 @@ export async function POST(req) {
       );
     }
 
-    // 3. Save to DB
     const newProduct = await Product.create({
       ...productData,
       variants,
@@ -86,17 +81,45 @@ export async function GET(req) {
   try {
     await mongooseDB();
     const { searchParams } = new URL(req.url);
-
     const page = Math.max(1, Number(searchParams.get("page")) || 1);
     const limit = Math.max(1, Number(searchParams.get("limit")) || 12);
-    const search = searchParams.get("search");
+    const search = searchParams.get("search")?.trim();
+    const brand = searchParams.get("brand")?.trim();
+    const category = searchParams.get("category")?.trim();
+    const color = searchParams.get("color")?.trim();
+    const bestSeller = searchParams.get("bestSeller");
+    const minPrice = searchParams.get("minPrice");
+    const maxPrice = searchParams.get("maxPrice");
 
     const filter = {};
     if (search) {
       filter.$or = [
         { title: { $regex: search, $options: "i" } },
         { model: { $regex: search, $options: "i" } },
+        { brand: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
       ];
+    }
+    if (brand) {
+      filter.brand = brand;
+    }
+    if (category) {
+      filter.category = category;
+    }
+    if (bestSeller === "true") {
+      filter.bestSeller = true;
+    }
+    if (color) {
+      filter["variants.colorCode"] = color;
+    }
+    if (minPrice || maxPrice) {
+      filter["variants.price"] = {};
+      if (minPrice) {
+        filter["variants.price"].$gte = Number(minPrice);
+      }
+      if (maxPrice) {
+        filter["variants.price"].$lte = Number(maxPrice);
+      }
     }
 
     const skip = (page - 1) * limit;
@@ -116,6 +139,7 @@ export async function GET(req) {
       pagination: { page, limit, total, pages: Math.ceil(total / limit) },
     });
   } catch (error) {
+    console.error("GET Products Error:", error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 }
