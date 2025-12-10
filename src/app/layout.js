@@ -1,6 +1,6 @@
 import DarkModeButton from "@/components/modules/DarkModeButton";
 import { Urbanist } from "next/font/google";
-import { ReduxProvider } from "@/providers/ReduxProviders";
+import AppProviders from "@/providers/AppProviders"; // ✅ این مهمه
 import NextAuthProvider from "@/providers/NextAuthProviders";
 import "./globals.css";
 import LoaderProvider from "@/providers/LoaderProvider";
@@ -17,11 +17,6 @@ export const metadata = {
     icon: "/images/logo.png",
   },
   description: "Modern e-commerce website",
-  openGraph: {
-    title: "nikye",
-    description: "Modern e-commerce website",
-    images: ["/images/nike.png"],
-  },
 };
 
 export default function RootLayout({ children }) {
@@ -29,9 +24,10 @@ export default function RootLayout({ children }) {
     <html lang="en" className="dark">
       <body className={`${urbanist.className} font-sans antialiased`}>
         <NextAuthProvider>
-          <ReduxProvider>
+          <AppProviders>
             <LoaderProvider>{children}</LoaderProvider>
-          </ReduxProvider>
+          </AppProviders>
+
           <section className="fixed bottom-9 right-6 z-50">
             <DarkModeButton />
           </section>

@@ -31,6 +31,7 @@ const cartSchema = new Schema(
 
 cartSchema.pre("save", function () {
   this.totalItems = this.items.reduce((sum, item) => sum + item.quantity, 0);
+
   this.totalPrice = this.items.reduce(
     (sum, item) => sum + item.priceAtAdd * item.quantity,
     0

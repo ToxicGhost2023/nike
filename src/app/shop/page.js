@@ -2,7 +2,7 @@
 
 import { Suspense, lazy } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowBigLeftDash } from "lucide-react";
+import { ArrowBigLeftDash, ShoppingCart } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 const SearchHeader = lazy(() => import("@/components/shop/SearchHeaders"));
@@ -65,6 +65,7 @@ export default function ProductsPage() {
         <ArrowBigLeftDash />
         Back To Home
       </button>
+
       <div className="pt-8 md:pt-16 pb-4 md:pb-8">
         <div className="text-center mb-8 md:mb-12 px-4">
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-black mb-4 bg-gradient-to-r from-[#16db65] to-[#12b541] bg-clip-text text-transparent">

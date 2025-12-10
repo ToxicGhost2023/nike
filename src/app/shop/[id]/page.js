@@ -1,13 +1,10 @@
+// components/ProductsDetails.jsx
+
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useParams } from "next/navigation";
-import { useDispatch, useSelector } from "react-redux";
-import {
-  getProductById,
-  clearCurrentProduct,
-} from "@/store/Slice/productSlice";
+import { useRouter, useParams } from "next/navigation";
+import { useProduct } from "@/hooks/product-hook/useProduct";
 import {
   ShoppingBag,
   Heart,
@@ -31,43 +28,30 @@ import Image from "next/image";
 export default function ProductsDetails() {
   const params = useParams();
   const router = useRouter();
-  const dispatch = useDispatch();
 
+  // ✅ استفاده از React Query بجای Redux
   const {
-    currentProduct: product,
-    loadingProduct: loading,
-    errorProduct: error,
-  } = useSelector((state) => state.products);
+    data: product,
+    isLoading: loading,
+    error,
+    isError,
+  } = useProduct(params.id);
 
   const [selectedVariant, setSelectedVariant] = useState(0);
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [allImages, setAllImages] = useState([]);
 
-  console.log(allImages);
-
-  // دریافت محصول از API
-  useEffect(() => {
-    if (params.id) {
-      dispatch(getProductById(params.id));
-    }
-
-    return () => {
-      dispatch(clearCurrentProduct());
-    };
-  }, [params.id, dispatch]);
-
+  // جمع‌آوری عکس‌ها
   useEffect(() => {
     if (!product || !product.variants) return;
 
     const images = [];
 
-    // عکس اصلی
     if (product.mainImage) {
       images.push(product.mainImage);
     }
 
-    // عکس‌های همون رنگ انتخاب‌شده اول بیان
     const selected = product.variants[selectedVariant];
     if (selected?.images?.length) {
       selected.images.forEach((img) => {
@@ -75,7 +59,6 @@ export default function ProductsDetails() {
       });
     }
 
-    // بعد عکس‌های بقیه رنگ‌ها
     product.variants.forEach((variant, i) => {
       if (i !== selectedVariant && variant.images?.length) {
         variant.images.forEach((img) => {
@@ -88,7 +71,11 @@ export default function ProductsDetails() {
     setSelectedImage(0);
   }, [product, selectedVariant]);
 
-  // Navigation بین عکس‌ها
+  // Reset quantity when variant changes
+  useEffect(() => {
+    setQuantity(1);
+  }, [selectedVariant]);
+
   const nextImage = () => {
     setSelectedImage((prev) => (prev + 1) % allImages.length);
   };
@@ -128,7 +115,7 @@ export default function ProductsDetails() {
   }
 
   // Error State
-  if (error || !product) {
+  if (isError || !product) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-950 dark:to-zinc-900">
         <div className="text-center max-w-md px-4">
@@ -139,7 +126,7 @@ export default function ProductsDetails() {
             Product Not Found
           </h2>
           <p className="text-zinc-600 dark:text-zinc-400 mb-8">
-            {error || "The product you're looking for doesn't exist"}
+            {error?.message || "The product you're looking for doesn't exist"}
           </p>
           <Button
             onClick={() => router.push("/shop")}
@@ -180,14 +167,12 @@ export default function ProductsDetails() {
         </div>
       </div>
 
-      {/* Main Content */}
+      {/* Main Content - همون کد قبلی */}
       <div className="container mx-auto max-w-7xl px-4 md:px-8 pb-16">
         <div className="grid lg:grid-cols-2 gap-8 md:gap-16">
           {/* Image Gallery */}
           <div className="space-y-4">
-            {/* Main Image */}
             <div className="relative aspect-square bg-zinc-100 dark:bg-zinc-950 rounded-3xl overflow-hidden group">
-              {/* Badges */}
               <div className="absolute top-6 left-6 z-10 flex flex-col gap-2">
                 {product.bestSeller && (
                   <Badge className="bg-white text-black font-black shadow-lg flex items-center gap-1 px-3 py-1.5">
@@ -202,7 +187,6 @@ export default function ProductsDetails() {
                 )}
               </div>
 
-              {/* Navigation Arrows */}
               {allImages?.length > 1 && (
                 <>
                   <button
@@ -224,24 +208,24 @@ export default function ProductsDetails() {
                 </>
               )}
 
-              {/* Image Counter */}
               {allImages?.length > 1 && (
                 <div className="absolute bottom-6 right-6 z-10 bg-black/60 text-white px-4 py-2 rounded-full text-sm font-bold">
-                  {selectedImage} / {allImages.length}
+                  {selectedImage + 1} / {allImages.length}
                 </div>
               )}
 
-              <Image
-                width={800}
-                height={800}
-                priority
-                src={allImages[selectedImage]}
-                alt={product.title}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-              />
+              {allImages[selectedImage] && (
+                <Image
+                  width={800}
+                  height={800}
+                  priority
+                  src={allImages[selectedImage]}
+                  alt={product.title}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+              )}
             </div>
 
-            {/* Thumbnails */}
             {allImages.length > 0 && (
               <div className="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-4 gap-3">
                 {allImages.map((img, index) => (
@@ -253,14 +237,13 @@ export default function ProductsDetails() {
                       ${
                         selectedImage === index
                           ? "border-[#16db65] ring-4 ring-[#16db65]/30 scale-105"
-                          : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700"
+                          : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-300"
                       }
                     `}
                   >
                     <Image
                       width={200}
                       height={200}
-                      priority
                       src={img}
                       alt=""
                       className="w-full h-full object-cover"
@@ -273,7 +256,6 @@ export default function ProductsDetails() {
 
           {/* Product Info */}
           <div className="flex flex-col">
-            {/* Header */}
             <div className="mb-6">
               <Badge
                 variant="outline"
@@ -328,7 +310,7 @@ export default function ProductsDetails() {
                   Select Color
                 </label>
                 <div className="flex flex-wrap gap-3">
-                  {product?.variants.map((variant, index) => (
+                  {product.variants.map((variant, index) => (
                     <button
                       key={index}
                       onClick={() => setSelectedVariant(index)}
@@ -427,7 +409,7 @@ export default function ProductsDetails() {
               <Button
                 disabled={!currentVariant || currentVariant.stock === 0}
                 className="w-full bg-[#16db65] hover:bg-[#12b541] text-white font-bold h-16 rounded-xl 
-                  shadow-lg hover:shadow-xl transition-all text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  shadow-lg hover:shadow-xl transition-all text-lg disabled:opacity-50"
               >
                 {!currentVariant || currentVariant.stock === 0 ? (
                   "Out of Stock"
@@ -460,7 +442,7 @@ export default function ProductsDetails() {
             {/* Features */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 p-6 bg-zinc-50 dark:bg-zinc-900 rounded-2xl border-2 border-zinc-200 dark:border-zinc-800">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-[#16db65]/10 flex items-center justify-center flex-shrink-0">
+                <div className="w-12 h-12 rounded-xl bg-[#16db65]/10 flex items-center justify-center">
                   <Truck size={24} className="text-[#16db65]" />
                 </div>
                 <div>
@@ -470,7 +452,7 @@ export default function ProductsDetails() {
               </div>
 
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-[#16db65]/10 flex items-center justify-center flex-shrink-0">
+                <div className="w-12 h-12 rounded-xl bg-[#16db65]/10 flex items-center justify-center">
                   <RotateCcw size={24} className="text-[#16db65]" />
                 </div>
                 <div>
@@ -480,7 +462,7 @@ export default function ProductsDetails() {
               </div>
 
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-[#16db65]/10 flex items-center justify-center flex-shrink-0">
+                <div className="w-12 h-12 rounded-xl bg-[#16db65]/10 flex items-center justify-center">
                   <Shield size={24} className="text-[#16db65]" />
                 </div>
                 <div>
@@ -505,28 +487,20 @@ export default function ProductsDetails() {
               <h4 className="text-lg font-bold mb-4">Product Details</h4>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="text-zinc-500 dark:text-zinc-400">
-                    Brand:
-                  </span>
+                  <span className="text-zinc-500">Brand:</span>
                   <p className="font-bold">{product.brand}</p>
                 </div>
                 <div>
-                  <span className="text-zinc-500 dark:text-zinc-400">
-                    Model:
-                  </span>
+                  <span className="text-zinc-500">Model:</span>
                   <p className="font-bold">{product.model}</p>
                 </div>
                 <div>
-                  <span className="text-zinc-500 dark:text-zinc-400">
-                    Category:
-                  </span>
+                  <span className="text-zinc-500">Category:</span>
                   <p className="font-bold">{product.category}</p>
                 </div>
                 {currentVariant?.sku && (
                   <div>
-                    <span className="text-zinc-500 dark:text-zinc-400">
-                      SKU:
-                    </span>
+                    <span className="text-zinc-500">SKU:</span>
                     <p className="font-bold">{currentVariant.sku}</p>
                   </div>
                 )}

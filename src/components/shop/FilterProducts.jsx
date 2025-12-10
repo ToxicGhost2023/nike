@@ -1,17 +1,16 @@
+// components/shop/FilterProducts.jsx
+
 "use client";
 
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  getAllProducts,
-  fetchFilterOptions,
-  setFilter,
-  resetFilters,
-} from "@/store/Slice/productSlice";
+import { setFilter, resetFilters } from "@/store/Slice/productSlice";
+import { useFilterOptions } from "@/hooks/product-hook/useFilterOptions";
 import { Filter, RefreshCw, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
@@ -22,45 +21,39 @@ import {
 
 export default function FilterProducts() {
   const dispatch = useDispatch();
-  const { filterOptions, filters, loading } = useSelector(
-    (state) => state.products
-  );
+  const { filters } = useSelector((state) => state.products);
+
+  // ✅ استفاده از React Query بجای Redux
+  const { data: filterData, isLoading } = useFilterOptions();
 
   const [isOpen, setIsOpen] = useState(false);
   const [priceMin, setPriceMin] = useState(filters.minPrice);
   const [priceMax, setPriceMax] = useState(filters.maxPrice);
   const priceTimer = useRef(null);
 
-  useEffect(() => {
-    if (filterOptions.length === 0) {
-      dispatch(fetchFilterOptions());
-    }
-  }, []);
-
+  // ✅ استخراج options از React Query data
   const options = useMemo(() => {
-    const brands = [
-      ...new Set(filterOptions.map((p) => p.brand).filter(Boolean)),
-    ];
-    const categories = [
-      ...new Set(filterOptions.map((p) => p.category).filter(Boolean)),
-    ];
-    const colors = [
-      ...new Set(
-        filterOptions.flatMap((p) => p.variants?.map((v) => v.colorCode) || [])
-      ),
-    ].filter(Boolean);
+    // اگر دیتا هنوز نیومده، مقادیر خالی برگردون
+    if (!filterData) {
+      return { brands: [], categories: [], colors: [] };
+    }
 
-    return { brands, categories, colors };
-  }, [filterOptions]);
+    // filterData از useFilterOptions میاد که select داره
+    return {
+      brands: filterData.brands || [],
+      categories: filterData.categories || [],
+      colors: filterData.colors || [],
+    };
+  }, [filterData]);
 
   const activeCount = useMemo(() => {
     return Object.values(filters).filter((v) => v && v !== "" && v !== false)
       .length;
   }, [filters]);
 
+  // ✅ فقط Redux state رو آپدیت کن - React Query خودش refetch میکنه
   const applyFilter = (key, value) => {
     dispatch(setFilter({ key, value: value === "all" ? "" : value }));
-    dispatch(getAllProducts());
   };
 
   // مدیریت قیمت با debounce
@@ -73,7 +66,6 @@ export default function FilterProducts() {
       dispatch(
         setFilter({ key: type === "min" ? "minPrice" : "maxPrice", value })
       );
-      dispatch(getAllProducts());
     }, 500);
   };
 
@@ -82,7 +74,6 @@ export default function FilterProducts() {
     setPriceMin("");
     setPriceMax("");
     dispatch(resetFilters());
-    dispatch(getAllProducts());
   };
 
   return (
@@ -106,6 +97,7 @@ export default function FilterProducts() {
           />
         </Button>
       </div>
+
       <aside
         className={`
           bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800
@@ -130,106 +122,115 @@ export default function FilterProducts() {
             )}
           </div>
 
-          {/* برند */}
-          <FilterSelect
-            label="Brand"
-            value={filters.brand || "all"}
-            options={options.brands}
-            onChange={(v) => applyFilter("brand", v)}
-            disabled={loading}
-          />
-
-          {/* دسته‌بندی */}
-          <FilterSelect
-            label="Category"
-            value={filters.category || "all"}
-            options={options.categories}
-            onChange={(v) => applyFilter("category", v)}
-            disabled={loading}
-          />
-
-          {/* محدوده قیمت */}
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-              Price Range ($)
-            </label>
-            <div className="flex gap-1">
-              <input
-                type="number"
-                placeholder="Min"
-                value={priceMin}
-                onChange={(e) => handlePriceChange("min", e.target.value)}
-                disabled={loading}
-                className="flex-1 h-10 -px-2 text-center rounded-lg border border-zinc-200 dark:border-zinc-700
-                  bg-white dark:bg-zinc-800 text-sm
-                  focus:outline-none focus:border-[#16db65] focus:ring-1 focus:ring-[#16db65]"
-              />
-              <input
-                type="number"
-                placeholder="Max"
-                value={priceMax}
-                onChange={(e) => handlePriceChange("max", e.target.value)}
-                disabled={loading}
-                className="flex-1 h-10 -px-2 text-center rounded-lg border border-zinc-200 dark:border-zinc-700
-                  bg-white dark:bg-zinc-800 text-sm
-                  focus:outline-none focus:border-[#16db65] focus:ring-1 focus:ring-[#16db65]"
-              />
+          {/* Loading State */}
+          {isLoading ? (
+            <div className="space-y-4">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
             </div>
-          </div>
+          ) : (
+            <>
+              {/* برند */}
+              <FilterSelect
+                label="Brand"
+                value={filters.brand || "all"}
+                options={options.brands}
+                onChange={(v) => applyFilter("brand", v)}
+              />
 
-          {/* رنگ‌ها */}
-          {options.colors.length > 0 && (
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                Color
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {options.colors.map((color) => (
-                  <button
-                    key={color}
-                    onClick={() =>
-                      applyFilter("color", filters.color === color ? "" : color)
-                    }
-                    disabled={loading}
-                    style={{ backgroundColor: color }}
-                    className={`
-                      w-8 h-8 rounded-full border-2 transition-all
-                      hover:scale-110 disabled:opacity-50
-                      ${
-                        filters.color === color
-                          ? "border-[#16db65] ring-2 ring-[#16db65]/50 scale-110"
-                          : "border-zinc-300 dark:border-zinc-600"
-                      }
-                    `}
-                    title={color}
+              {/* دسته‌بندی */}
+              <FilterSelect
+                label="Category"
+                value={filters.category || "all"}
+                options={options.categories}
+                onChange={(v) => applyFilter("category", v)}
+              />
+
+              {/* محدوده قیمت */}
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+                  Price Range ($)
+                </label>
+                <div className="flex gap-1">
+                  <input
+                    type="number"
+                    placeholder="Min"
+                    value={priceMin}
+                    onChange={(e) => handlePriceChange("min", e.target.value)}
+                    className="flex-1 h-10 px-2 text-center rounded-lg border border-zinc-200 dark:border-zinc-700
+                      bg-white dark:bg-zinc-800 text-sm
+                      focus:outline-none focus:border-[#16db65] focus:ring-1 focus:ring-[#16db65]"
                   />
-                ))}
+                  <input
+                    type="number"
+                    placeholder="Max"
+                    value={priceMax}
+                    onChange={(e) => handlePriceChange("max", e.target.value)}
+                    className="flex-1 h-10 px-2 text-center rounded-lg border border-zinc-200 dark:border-zinc-700
+                      bg-white dark:bg-zinc-800 text-sm
+                      focus:outline-none focus:border-[#16db65] focus:ring-1 focus:ring-[#16db65]"
+                  />
+                </div>
               </div>
-            </div>
-          )}
 
-          {/* پرفروش */}
-          <label className="flex items-center gap-3 p-3 rounded-lg bg-zinc-50 dark:bg-zinc-800/50 cursor-pointer">
-            <Checkbox
-              checked={filters.bestSeller || false}
-              onCheckedChange={(checked) => applyFilter("bestSeller", checked)}
-              disabled={loading}
-              className="data-[state=checked]:bg-[#16db65] data-[state=checked]:border-[#16db65]"
-            />
-            <span className="text-sm font-medium">Best Sellers Only</span>
-          </label>
+              {/* رنگ‌ها */}
+              {options.colors.length > 0 && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+                    Color
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {options.colors.map((color) => (
+                      <button
+                        key={color}
+                        onClick={() =>
+                          applyFilter(
+                            "color",
+                            filters.color === color ? "" : color
+                          )
+                        }
+                        style={{ backgroundColor: color }}
+                        className={`
+                          w-8 h-8 rounded-full border-2 transition-all
+                          hover:scale-110
+                          ${
+                            filters.color === color
+                              ? "border-[#16db65] ring-2 ring-[#16db65]/50 scale-110"
+                              : "border-zinc-300 dark:border-zinc-600"
+                          }
+                        `}
+                        title={color}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
 
-          {/* ریست */}
-          {activeCount > 0 && (
-            <Button
-              onClick={handleReset}
-              variant="outline"
-              disabled={loading}
-              className="w-full h-10 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
-            >
-              <RefreshCw size={16} className="mr-2" />
-              Clear All
-            </Button>
+              {/* پرفروش */}
+              <label className="flex items-center gap-3 p-3 rounded-lg bg-zinc-50 dark:bg-zinc-800/50 cursor-pointer">
+                <Checkbox
+                  checked={filters.bestSeller || false}
+                  onCheckedChange={(checked) =>
+                    applyFilter("bestSeller", checked)
+                  }
+                  className="data-[state=checked]:bg-[#16db65] data-[state=checked]:border-[#16db65]"
+                />
+                <span className="text-sm font-medium">Best Sellers Only</span>
+              </label>
+
+              {/* ریست */}
+              {activeCount > 0 && (
+                <Button
+                  onClick={handleReset}
+                  variant="outline"
+                  className="w-full h-10 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                >
+                  <RefreshCw size={16} className="mr-2" />
+                  Clear All
+                </Button>
+              )}
+            </>
           )}
         </div>
       </aside>
@@ -237,13 +238,13 @@ export default function FilterProducts() {
   );
 }
 
-function FilterSelect({ label, value, options, onChange, disabled }) {
+function FilterSelect({ label, value, options, onChange }) {
   return (
     <div className="space-y-2">
       <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
         {label}
       </label>
-      <Select value={value} onValueChange={onChange} disabled={disabled}>
+      <Select value={value} onValueChange={onChange}>
         <SelectTrigger className="h-10 border-zinc-200 dark:border-zinc-700">
           <SelectValue placeholder={`All ${label}s`} />
         </SelectTrigger>

@@ -1,25 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { getAllProducts } from "@/store/Slice/productSlice";
+import { useState } from "react";
+
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye } from "lucide-react";
 import ProductView from "./ProductsView";
 import Image from "next/image";
+import { useProducts } from "@/hooks/product-hook/useProducts";
 
 export default function ProductsList() {
-  const dispatch = useDispatch();
-  const { products, loading } = useSelector((state) => state.products);
+  const { data, isLoading } = useProducts();
   const [selectedProduct, setSelectedProduct] = useState(null);
 
-  useEffect(() => {
-    dispatch(getAllProducts());
-  }, [dispatch]);
+  const products = data?.products || [];
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {[1, 2, 3].map((i) => (

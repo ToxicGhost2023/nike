@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Menu, Search, UserStar, X } from "lucide-react";
+import { LucideShoppingBag, Menu, Search, UserStar, X } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -14,8 +14,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useSession } from "next-auth/react";
+import { Badge } from "../ui/badge";
+import { useDispatch, useSelector } from "react-redux";
 
 export default function HeaderLanding() {
+  const { totalItems } = useSelector((state) => state.cart);
   const [search, setSearch] = useState("");
   const { data: session } = useSession();
 
@@ -63,6 +66,14 @@ export default function HeaderLanding() {
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9 w-48 xl:w-64 focus-visible:ring-[#70e000]"
             />
+          </div>
+          <div className="flex ">
+            <Badge className="relative bg-green text-black text-sm -right-4 -top-[12px] h-5  min-w-5 rounded-full px-1 font-mono tabular-nums">
+              {totalItems || "0"}
+            </Badge>
+            <Link href="/cart">
+              <LucideShoppingBag />
+            </Link>
           </div>
           {session?.user?.role == "admin" ? (
             <Link

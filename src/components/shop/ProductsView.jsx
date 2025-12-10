@@ -13,10 +13,23 @@ import {
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
+import { useDispatch } from "react-redux";
+import { addToCart } from "@/store/Slice/cartSlice";
 
 export default function ProductView({ product, isOpen, onClose }) {
   const [activeImage, setActiveImage] = useState("");
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
+  const dispatch = useDispatch();
+
+  const handleAddToCart = () => {
+    dispatch(
+      addToCart({
+        productId: product._id,
+        variantId: currentVariant._id,
+        quantity: 1,
+      })
+    );
+  };
 
   // Reset state when product changes
   useEffect(() => {
@@ -229,6 +242,7 @@ export default function ProductView({ product, isOpen, onClose }) {
             <Button
               className="flex-[2] h-14 text-lg font-bold rounded-xl bg-orange-600 hover:bg-orange-700 text-white shadow-lg shadow-orange-600/20"
               disabled={currentVariant.stock <= 0}
+              onClick={() => handleAddToCart()}
             >
               <ShoppingCart className="mr-2 w-5 h-5" />
               {currentVariant.stock > 0 ? "Add to Cart" : "Out of Stock"}
