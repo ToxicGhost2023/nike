@@ -26,7 +26,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "sonner";
 
 export default function ProductsDetails() {
   const params = useParams();
@@ -40,6 +39,7 @@ export default function ProductsDetails() {
   const [quantity, setQuantity] = useState(1);
   const [allImages, setAllImages] = useState([]);
   const [justAdded, setJustAdded] = useState(false);
+  const [addError, setAddError] = useState(null);
 
   useEffect(() => {
     if (!product || !product.variants) return;
@@ -70,8 +70,13 @@ export default function ProductsDetails() {
     setQuantity(1);
   }, [selectedVariant]);
 
+  const currentVariant =
+    product?.variants?.[selectedVariant] || product?.variants?.[0];
+
   const handleAddToCart = async () => {
     if (!product || !currentVariant) return;
+
+    setAddError(null);
 
     try {
       await addToCart.mutateAsync({
@@ -81,21 +86,22 @@ export default function ProductsDetails() {
       });
 
       setJustAdded(true);
-      toast.success("Added to cart!", {
-        description: `${quantity}x ${product.title}`,
-      });
-
       setTimeout(() => setJustAdded(false), 2000);
     } catch (err) {
-      toast.error(err.response?.data?.error || "Failed to add to cart");
+      const message =
+        err?.response?.data?.error || err?.message || "Failed to add to cart";
+      setAddError(message);
+      setTimeout(() => setAddError(null), 3000);
     }
   };
 
   const nextImage = () => {
+    if (!allImages.length) return;
     setSelectedImage((prev) => (prev + 1) % allImages.length);
   };
 
   const prevImage = () => {
+    if (!allImages.length) return;
     setSelectedImage(
       (prev) => (prev - 1 + allImages.length) % allImages.length
     );
@@ -153,8 +159,6 @@ export default function ProductsDetails() {
     );
   }
 
-  const currentVariant =
-    product.variants?.[selectedVariant] || product.variants?.[0];
   const price = currentVariant?.finalPrice || currentVariant?.price || 0;
   const isDiscounted = currentVariant?.discount > 0;
   const isOutOfStock = !currentVariant || currentVariant.stock <= 0;
@@ -404,6 +408,30 @@ export default function ProductsDetails() {
                 </Button>
               </div>
             </div>
+
+            {/* Add to cart feedback */}
+            {(justAdded || addError) && (
+              <div
+                className={`mb-4 p-4 rounded-xl text-sm font-medium flex items-center gap-2 border ${
+                  justAdded
+                    ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                    : "bg-red-50 border-red-200 text-red-700"
+                }`}
+              >
+                {justAdded && (
+                  <>
+                    <Check className="w-4 h-4" />
+                    <span>{quantity} item(s) added to cart.</span>
+                  </>
+                )}
+                {addError && (
+                  <>
+                    <AlertCircle className="w-4 h-4" />
+                    <span>{addError}</span>
+                  </>
+                )}
+              </div>
+            )}
 
             {/* Action Buttons */}
             <div className="space-y-4 mb-8">

@@ -60,69 +60,100 @@ export default function ProductsList() {
           return (
             <div
               key={product._id}
-              className="group border rounded-3xl overflow-hidden transition-all duration-300 flex flex-col hover:shadow-lg"
+              className="
+              group relative flex flex-col overflow-hidden
+              rounded-3xl border border-zinc-100 bg-white
+              transition-all duration-300
+              hover:border-zinc-300 hover:-translate-y-1
+            "
             >
-              {/* Image Container */}
-              <div className="relative overflow-hidden p-4">
-                <Image
-                  width={200}
-                  height={200}
-                  src={product.mainImage || "/placeholder.png"}
-                  alt={product.title}
-                  priority={false}
-                  className="w-full h-full object-contain rounded-3xl transition-transform duration-500 group-hover:scale-105"
-                />
+              {/* نوار گرادیانی بالای کارت */}
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-zinc-900 via-zinc-500 to-zinc-900 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+              {/* Image Container – نسخه واضح‌تر */}
+              <div className="relative overflow-hidden">
+                <div className="relative w-full h-64 bg-zinc-50 flex items-center justify-center">
+                  <Image
+                    width={400}
+                    height={400}
+                    src={product.mainImage || "/placeholder.png"}
+                    alt={product.title}
+                    priority={false}
+                    className="
+                    w-full h-full object-contain
+                    transition-transform duration-500
+                    group-hover:scale-[1.03]
+                  "
+                  />
+                </div>
 
                 {/* Badges */}
-                {mainVariant.discount > 0 && (
-                  <Badge className="absolute top-4 left-4 bg-red-500">
-                    {mainVariant.discount}% OFF
-                  </Badge>
-                )}
+                <div className="absolute top-4 left-4 flex flex-col gap-2">
+                  {mainVariant.discount > 0 && (
+                    <Badge className="bg-red-500/90 text-[11px] tracking-wide rounded-full px-2.5 py-0.5">
+                      {mainVariant.discount}% OFF
+                    </Badge>
+                  )}
 
-                {product.bestSeller && (
-                  <Badge className="absolute top-4 left-4 bg-amber-500">
-                    Best Seller
-                  </Badge>
-                )}
+                  {product.bestSeller && (
+                    <Badge className="bg-amber-500/90 text-[11px] tracking-wide rounded-full px-2.5 py-0.5">
+                      Best Seller
+                    </Badge>
+                  )}
+                </div>
 
                 {/* Quick View Button */}
                 <Button
                   size="icon"
-                  className="absolute top-4 right-4 rounded-full opacity-0 group-hover:opacity-100 translate-x-4 group-hover:translate-x-0 transition-all duration-300 shadow-lg"
+                  className="
+                  absolute top-4 right-4 rounded-full bg-white/95 text-zinc-800
+                  border border-zinc-200
+                  opacity-0 translate-y-2
+                  group-hover:opacity-100 group-hover:translate-y-0
+                  transition-all duration-300
+                  hover:bg-zinc-900 hover:text-white
+                "
                   onClick={() => setSelectedProduct(product)}
                 >
-                  <Eye className="w-5 h-5" />
+                  <Eye className="w-4 h-4" />
                 </Button>
               </div>
 
               {/* Details */}
-              <div className="p-5 flex flex-col flex-1">
-                <p className="text-xs text-[#16db65] font-bold uppercase mb-1">
+              <div className="px-5 pb-5 pt-3 flex flex-col flex-1">
+                <p className="text-[11px] text-emerald-500 font-semibold tracking-[0.18em] uppercase mb-1">
                   {product.brand}
                 </p>
-                <h3 className="font-bold text-lg mb-1 line-clamp-1">
+
+                <h3 className="font-semibold text-[15px] text-zinc-900 mb-0.5 line-clamp-1">
                   {product.title}
                 </h3>
-                <p className="text-xs text-gray-600 font-medium mb-2">
+
+                <p className="text-xs text-zinc-500 mb-3 line-clamp-1">
                   {product.model}
                 </p>
 
-                <div className="mt-auto flex items-center justify-between">
-                  <div>
-                    <span className="text-xl font-bold text-orange-600">
+                <div className="mt-auto flex items-end justify-between gap-2 pt-2">
+                  <div className="flex flex-col">
+                    <span className="text-xl font-semibold text-zinc-900">
                       ${price.toLocaleString()}
                     </span>
                     {mainVariant.discount > 0 && (
-                      <span className="text-sm text-zinc-400 line-through ml-2">
+                      <span className="text-xs text-zinc-400 line-through">
                         ${mainVariant.price}
                       </span>
                     )}
                   </div>
+
                   <Button
                     size="sm"
                     variant="outline"
-                    className="rounded-xl"
+                    className="
+                    rounded-full px-4 h-9 text-xs font-medium
+                    border-zinc-200 text-zinc-800
+                    hover:bg-zinc-900 hover:text-white hover:border-zinc-900
+                    transition-colors duration-200
+                  "
                     onClick={() => setSelectedProduct(product)}
                   >
                     View
