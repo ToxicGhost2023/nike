@@ -34,6 +34,7 @@ export async function GET() {
 export async function POST(req) {
   try {
     const session = await getServerSession(authOptions);
+
     if (!session?.user?.id) {
       return NextResponse.json({ message: "Login required" }, { status: 401 });
     }
@@ -94,6 +95,7 @@ export async function POST(req) {
     return NextResponse.json({ message: "Server error" }, { status: 500 });
   }
 }
+
 export async function PATCH(req) {
   try {
     const session = await getServerSession(authOptions);
@@ -101,7 +103,7 @@ export async function PATCH(req) {
       return NextResponse.json({ message: "Login required" }, { status: 401 });
     }
 
-    const { variantId, quantity } = await req.json();
+    const { itemId, quantity } = await req.json();
 
     if (quantity < 1) {
       return NextResponse.json(
@@ -117,7 +119,7 @@ export async function PATCH(req) {
     }
 
     const itemIndex = cart.items.findIndex(
-      (item) => item.variantId.toString() === variantId
+      (item) => item._id.toString() === itemId
     );
 
     if (itemIndex === -1) {
@@ -130,6 +132,7 @@ export async function PATCH(req) {
     cart.items[itemIndex].quantity = quantity;
 
     await cart.save();
+
     await cart.populate("items.product", "title mainImage brand");
 
     return NextResponse.json(cart);
@@ -138,24 +141,22 @@ export async function PATCH(req) {
     return NextResponse.json({ message: "Server error" }, { status: 500 });
   }
 }
+
 export async function DELETE(req) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ message: "Login required" }, { status: 401 });
     }
-
-    const { variantId } = await req.json();
+    const { searchParams } = new URL(req.url);
+    const itemId = searchParams.get("itemId");
 
     const cart = await Cart.findOne({ userId: session.user.id });
 
     if (!cart) {
       return NextResponse.json({ message: "Cart not found" }, { status: 404 });
     }
-
-    cart.items = cart.items.filter(
-      (item) => item.variantId.toString() !== variantId
-    );
+    cart.items = cart.items.filter((item) => item._id.toString() !== itemId);
 
     await cart.save();
     await cart.populate("items.product", "title mainImage brand");

@@ -1,10 +1,13 @@
-// components/ProductsDetails.jsx
+// components/shop/ProductsDetails.jsx
 
 "use client";
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
+import Image from "next/image";
+import Link from "next/link";
 import { useProduct } from "@/hooks/product-hook/useProduct";
+import { useAddToCart } from "@/hooks/cart-hook/useAddToCart";
 import {
   ShoppingBag,
   Heart,
@@ -18,39 +21,31 @@ import {
   ChevronLeft,
   ChevronRight,
   AlertCircle,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import Link from "next/link";
-import Image from "next/image";
+import { toast } from "sonner";
 
 export default function ProductsDetails() {
   const params = useParams();
   const router = useRouter();
 
-  // ✅ استفاده از React Query بجای Redux
-  const {
-    data: product,
-    isLoading: loading,
-    error,
-    isError,
-  } = useProduct(params.id);
+  const { data: product, isLoading, isError, error } = useProduct(params.id);
+  const addToCart = useAddToCart();
 
   const [selectedVariant, setSelectedVariant] = useState(0);
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [allImages, setAllImages] = useState([]);
+  const [justAdded, setJustAdded] = useState(false);
 
-  // جمع‌آوری عکس‌ها
   useEffect(() => {
     if (!product || !product.variants) return;
 
     const images = [];
-
-    if (product.mainImage) {
-      images.push(product.mainImage);
-    }
+    if (product.mainImage) images.push(product.mainImage);
 
     const selected = product.variants[selectedVariant];
     if (selected?.images?.length) {
@@ -71,10 +66,30 @@ export default function ProductsDetails() {
     setSelectedImage(0);
   }, [product, selectedVariant]);
 
-  // Reset quantity when variant changes
   useEffect(() => {
     setQuantity(1);
   }, [selectedVariant]);
+
+  const handleAddToCart = async () => {
+    if (!product || !currentVariant) return;
+
+    try {
+      await addToCart.mutateAsync({
+        productId: product._id,
+        variantId: currentVariant._id,
+        quantity,
+      });
+
+      setJustAdded(true);
+      toast.success("Added to cart!", {
+        description: `${quantity}x ${product.title}`,
+      });
+
+      setTimeout(() => setJustAdded(false), 2000);
+    } catch (err) {
+      toast.error(err.response?.data?.error || "Failed to add to cart");
+    }
+  };
 
   const nextImage = () => {
     setSelectedImage((prev) => (prev + 1) % allImages.length);
@@ -86,8 +101,7 @@ export default function ProductsDetails() {
     );
   };
 
-  // Loading State
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-950 dark:to-zinc-900 p-4 md:p-8">
         <div className="container mx-auto max-w-7xl">
@@ -114,7 +128,6 @@ export default function ProductsDetails() {
     );
   }
 
-  // Error State
   if (isError || !product) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-950 dark:to-zinc-900">
@@ -144,6 +157,7 @@ export default function ProductsDetails() {
     product.variants?.[selectedVariant] || product.variants?.[0];
   const price = currentVariant?.finalPrice || currentVariant?.price || 0;
   const isDiscounted = currentVariant?.discount > 0;
+  const isOutOfStock = !currentVariant || currentVariant.stock <= 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-950 dark:to-zinc-900">
@@ -167,7 +181,7 @@ export default function ProductsDetails() {
         </div>
       </div>
 
-      {/* Main Content - همون کد قبلی */}
+      {/* Main Content */}
       <div className="container mx-auto max-w-7xl px-4 md:px-8 pb-16">
         <div className="grid lg:grid-cols-2 gap-8 md:gap-16">
           {/* Image Gallery */}
@@ -191,17 +205,13 @@ export default function ProductsDetails() {
                 <>
                   <button
                     onClick={prevImage}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-white/90 dark:bg-zinc-900/90 
-                      rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform
-                      opacity-0 group-hover:opacity-100"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-white/90 dark:bg-zinc-900/90 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform opacity-0 group-hover:opacity-100"
                   >
                     <ChevronLeft size={24} />
                   </button>
                   <button
                     onClick={nextImage}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-white/90 dark:bg-zinc-900/90 
-                      rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform
-                      opacity-0 group-hover:opacity-100"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-white/90 dark:bg-zinc-900/90 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform opacity-0 group-hover:opacity-100"
                   >
                     <ChevronRight size={24} />
                   </button>
@@ -232,14 +242,11 @@ export default function ProductsDetails() {
                   <button
                     key={index}
                     onClick={() => setSelectedImage(index)}
-                    className={`
-                      aspect-square rounded-xl overflow-hidden border-4 transition-all
-                      ${
-                        selectedImage === index
-                          ? "border-[#16db65] ring-4 ring-[#16db65]/30 scale-105"
-                          : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-300"
-                      }
-                    `}
+                    className={`aspect-square rounded-xl overflow-hidden border-4 transition-all ${
+                      selectedImage === index
+                        ? "border-[#16db65] ring-4 ring-[#16db65]/30 scale-105"
+                        : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-300"
+                    }`}
                   >
                     <Image
                       width={200}
@@ -314,15 +321,11 @@ export default function ProductsDetails() {
                     <button
                       key={index}
                       onClick={() => setSelectedVariant(index)}
-                      className={`
-                        relative w-14 h-14 md:w-16 md:h-16 rounded-xl shadow-md hover:shadow-lg transition-all
-                        border-4 transform hover:scale-110
-                        ${
-                          selectedVariant === index
-                            ? "border-[#16db65] ring-4 ring-[#16db65]/30 scale-110"
-                            : "border-white dark:border-zinc-800"
-                        }
-                      `}
+                      className={`relative w-14 h-14 md:w-16 md:h-16 rounded-xl shadow-md hover:shadow-lg transition-all border-4 transform hover:scale-110 ${
+                        selectedVariant === index
+                          ? "border-[#16db65] ring-4 ring-[#16db65]/30 scale-110"
+                          : "border-white dark:border-zinc-800"
+                      }`}
                       style={{ backgroundColor: variant.colorCode }}
                       title={variant.colorName}
                     >
@@ -353,17 +356,15 @@ export default function ProductsDetails() {
                 <div className="flex items-center gap-2">
                   <div
                     className={`w-3 h-3 rounded-full ${
-                      currentVariant?.stock > 0 ? "bg-green-500" : "bg-red-500"
+                      !isOutOfStock ? "bg-green-500" : "bg-red-500"
                     }`}
                   />
                   <span
                     className={`font-black text-sm ${
-                      currentVariant?.stock > 0
-                        ? "text-green-500"
-                        : "text-red-500"
+                      !isOutOfStock ? "text-green-500" : "text-red-500"
                     }`}
                   >
-                    {currentVariant?.stock > 0
+                    {!isOutOfStock
                       ? `${currentVariant.stock} In Stock`
                       : "Out of Stock"}
                   </span>
@@ -407,11 +408,25 @@ export default function ProductsDetails() {
             {/* Action Buttons */}
             <div className="space-y-4 mb-8">
               <Button
-                disabled={!currentVariant || currentVariant.stock === 0}
-                className="w-full bg-[#16db65] hover:bg-[#12b541] text-white font-bold h-16 rounded-xl 
-                  shadow-lg hover:shadow-xl transition-all text-lg disabled:opacity-50"
+                disabled={isOutOfStock || addToCart.isPending}
+                onClick={handleAddToCart}
+                className={`w-full h-16 rounded-xl shadow-lg hover:shadow-xl transition-all text-lg font-bold ${
+                  justAdded
+                    ? "bg-green-500 hover:bg-green-600"
+                    : "bg-[#16db65] hover:bg-[#12b541]"
+                } text-white`}
               >
-                {!currentVariant || currentVariant.stock === 0 ? (
+                {addToCart.isPending ? (
+                  <>
+                    <Loader2 size={24} className="mr-2 animate-spin" />
+                    Adding...
+                  </>
+                ) : justAdded ? (
+                  <>
+                    <Check size={24} className="mr-2" />
+                    Added to Cart!
+                  </>
+                ) : isOutOfStock ? (
                   "Out of Stock"
                 ) : (
                   <>

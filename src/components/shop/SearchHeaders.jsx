@@ -1,15 +1,21 @@
+// components/shop/SearchHeader.jsx
+
 "use client";
 
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { setSearch, getAllProducts } from "@/store/Slice/productSlice";
+import { setSearch } from "@/store/Slice/productSlice";
+import { useProducts } from "@/hooks/product-hook/useProducts";
 import { Search, X, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 export default function SearchHeader() {
   const dispatch = useDispatch();
-  const { search, loading } = useSelector((state) => state.products);
+  const { search } = useSelector((state) => state.products);
+  const { isLoading, isFetching } = useProducts();
+
+  const loading = isLoading || isFetching;
   const [query, setQuery] = useState(search);
 
   useEffect(() => {
@@ -18,13 +24,11 @@ export default function SearchHeader() {
 
   const handleSearch = () => {
     dispatch(setSearch(query.trim()));
-    dispatch(getAllProducts());
   };
 
   const handleClear = () => {
     setQuery("");
     dispatch(setSearch(""));
-    dispatch(getAllProducts());
   };
 
   return (
@@ -42,8 +46,7 @@ export default function SearchHeader() {
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSearch()}
           disabled={loading}
-          className="h-12 pl-11 pr-24 rounded-xl border-2 border-zinc-200 dark:border-zinc-700
-            focus:border-[#16db65] focus:ring-2 focus:ring-[#16db65]/20"
+          className="h-12 pl-11 pr-24 rounded-xl border-2 border-zinc-200 dark:border-zinc-700 focus:border-[#16db65] focus:ring-2 focus:ring-[#16db65]/20"
         />
 
         {query && (

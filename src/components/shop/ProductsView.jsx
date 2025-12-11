@@ -1,51 +1,50 @@
+// components/shop/ProductView.jsx
+
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useAddToCart } from "@/hooks/cart-hook/useAddToCart";
 import {
   ShoppingCart,
   ChevronLeft,
   ChevronRight,
   BookImage,
+  Loader2,
+  Check,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import Image from "next/image";
-import Link from "next/link";
-import { useDispatch } from "react-redux";
-import { addToCart } from "@/store/Slice/cartSlice";
 
 export default function ProductView({ product, isOpen, onClose }) {
   const [activeImage, setActiveImage] = useState("");
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
-  const dispatch = useDispatch();
+  const [justAdded, setJustAdded] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleAddToCart = () => {
-    dispatch(
-      addToCart({
-        productId: product._id,
-        variantId: currentVariant._id,
-        quantity: 1,
-      })
-    );
-  };
+  const addToCart = useAddToCart();
 
-  // Reset state when product changes
+  // Reset on product change
   useEffect(() => {
     if (product) {
       setSelectedVariantIndex(0);
+      setJustAdded(false);
+      setError("");
       const firstImage =
         product.variants?.[0]?.images?.[0] || product.mainImage;
       setActiveImage(firstImage);
     }
   }, [product]);
 
-  // Update image when variant changes
+  // Update image on variant change
   useEffect(() => {
-    if (product && product.variants[selectedVariantIndex]) {
+    if (product?.variants?.[selectedVariantIndex]) {
       const variantImages = product.variants[selectedVariantIndex].images;
-      if (variantImages && variantImages.length > 0) {
+      if (variantImages?.length > 0) {
         setActiveImage(variantImages[0]);
       } else {
         setActiveImage(product.mainImage);
@@ -55,11 +54,14 @@ export default function ProductView({ product, isOpen, onClose }) {
 
   if (!product) return null;
 
-  const currentVariant = product.variants[selectedVariantIndex];
+  const currentVariant = product.variants?.[selectedVariantIndex];
   const gallery =
     currentVariant?.images?.length > 0
       ? currentVariant.images
       : [product.mainImage];
+
+  const price = currentVariant?.finalPrice || currentVariant?.price || 0;
+  const isOutOfStock = !currentVariant || currentVariant.stock <= 0;
 
   const handleNextImage = () => {
     const currentIndex = gallery.indexOf(activeImage);
@@ -74,63 +76,76 @@ export default function ProductView({ product, isOpen, onClose }) {
     setActiveImage(gallery[prevIndex]);
   };
 
+  const handleAddToCart = async () => {
+    if (!product || !currentVariant) return;
+    setError("");
+
+    try {
+      await addToCart.mutateAsync({
+        productId: product._id,
+        variantId: currentVariant._id,
+        quantity: 1,
+      });
+
+      setJustAdded(true);
+      setTimeout(() => setJustAdded(false), 2000);
+    } catch (err) {
+      setError(err.response?.data?.error || "Failed to add to cart");
+      setTimeout(() => setError(""), 3000);
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-5xl p-0 gap-0 overflow-hidden rounded-3xl h-[90vh] md:h-[600px] flex flex-col md:flex-row bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border border-white/20 shadow-2xl">
-        {/* Left Side: Image Gallery */}
-        <div className="w-full md:w-1/2 h-[45%] md:h-full relative flex flex-col bg-white/30 dark:bg-black/20">
-          {/* Main Image Area */}
+      <DialogContent className="max-w-5xl p-0 gap-0 overflow-hidden rounded-3xl h-[90vh] md:h-[600px] flex flex-col md:flex-row bg-white dark:bg-zinc-950 border shadow-2xl">
+        {/* Left: Gallery */}
+        <div className="w-full md:w-1/2 h-[45%] md:h-full relative flex flex-col bg-zinc-50 dark:bg-zinc-900">
           <div className="flex-1 relative flex items-center justify-center p-4 group">
-            <div className="relative w-full h-full flex items-center justify-center">
-              <Image
-                width={500}
-                height={500}
-                src={activeImage}
-                alt={product.title}
-                className="max-w-full max-h-full object-contain drop-shadow-xl transition-transform duration-300 hover:scale-105"
-              />
-            </div>
+            <Image
+              width={500}
+              height={500}
+              src={activeImage || product.mainImage}
+              alt={product.title}
+              className="max-w-full max-h-full object-contain"
+            />
 
-            {/* Navigation Arrows - Glass Style */}
             {gallery.length > 1 && (
               <>
                 <button
                   onClick={handlePrevImage}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/50 backdrop-blur-md hover:bg-white/90 transition shadow-lg text-zinc-800"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 hover:bg-white transition shadow-lg"
                 >
-                  <ChevronLeft className="w-6 h-6" />
+                  <ChevronLeft className="w-5 h-5" />
                 </button>
                 <button
                   onClick={handleNextImage}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/50 backdrop-blur-md hover:bg-white/90 transition shadow-lg text-zinc-800"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 hover:bg-white transition shadow-lg"
                 >
-                  <ChevronRight className="w-6 h-6" />
+                  <ChevronRight className="w-5 h-5" />
                 </button>
               </>
             )}
           </div>
 
-          {/* Thumbnails - Glass Border */}
           {gallery.length > 1 && (
-            <div className="h-24 px-4 flex items-center gap-3 overflow-x-auto border-t border-white/20 bg-white/10 backdrop-blur-sm">
+            <div className="h-20 px-4 pb-4 flex items-center gap-2 overflow-x-auto">
               {gallery.map((img, idx) => (
                 <button
                   key={idx}
                   onClick={() => setActiveImage(img)}
                   className={cn(
-                    "relative w-16 h-16 rounded-xl overflow-hidden border-2 flex-shrink-0 transition-all shadow-sm",
+                    "w-14 h-14 rounded-lg overflow-hidden border-2 flex-shrink-0 transition-all",
                     activeImage === img
-                      ? "border-blue-600 opacity-100 ring-2 ring-blue-600/20 scale-105"
-                      : "border-transparent opacity-70 hover:opacity-100 hover:scale-105"
+                      ? "border-[#16db65] scale-105"
+                      : "border-transparent opacity-70 hover:opacity-100"
                   )}
                 >
                   <Image
-                    width={100}
-                    height={100}
+                    width={56}
+                    height={56}
                     src={img}
-                    alt="thumb"
+                    alt=""
                     className="w-full h-full object-cover"
-                    priority={false}
                   />
                 </button>
               ))}
@@ -138,114 +153,137 @@ export default function ProductView({ product, isOpen, onClose }) {
           )}
         </div>
 
-        {/* Right Side: Details */}
-        <div className="w-full md:w-1/2 h-[55%] md:h-full p-6 md:p-8 overflow-y-auto relative flex flex-col bg-white/40 dark:bg-black/20">
-          <DialogClose
-            className="absolute top-4 right-4 p-2 bg-black/5 hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/20 rounded-full transition"
-            onClick={onClose}
-          ></DialogClose>
+        {/* Right: Details */}
+        <div className="w-full md:w-1/2 h-[55%] md:h-full p-6 overflow-y-auto relative flex flex-col">
+          <DialogClose className="absolute top-4 right-4 p-2 hover:bg-zinc-100 rounded-full">
+            <X className="w-5 h-5" />
+          </DialogClose>
 
-          <div className="mb-6">
-            <Badge variant="outline" className="mb-2 border-zinc-400/50">
+          <div className="mb-4">
+            <Badge variant="outline" className="mb-2">
               {product.brand}
             </Badge>
-            <h2 className="text-3xl md:text-4xl font-black text-zinc-800 dark:text-zinc-100 mt-1">
-              {product.title}
-            </h2>
-            <p className="text-zinc-500 font-medium">{product.model}</p>
+            <h2 className="text-2xl md:text-3xl font-black">{product.title}</h2>
+            <p className="text-zinc-500">{product.model}</p>
           </div>
 
           {/* Price */}
-          <div className="flex items-center gap-3 mb-8 bg-white/50 dark:bg-black/30 p-4 rounded-2xl w-fit backdrop-blur-sm">
-            <span className="text-3xl font-bold text-green-600">
-              ${currentVariant.finalPrice.toLocaleString()}
+          <div className="flex items-center gap-3 mb-6 p-4 bg-zinc-50 dark:bg-zinc-800 rounded-xl w-fit">
+            <span className="text-2xl font-bold text-[#16db65]">
+              ${price.toLocaleString()}
             </span>
-            {currentVariant.discount > 0 && (
+            {currentVariant?.discount > 0 && (
               <>
-                <span className="text-lg text-zinc-400 line-through decoration-2">
+                <span className="text-lg text-zinc-400 line-through">
                   ${currentVariant.price}
                 </span>
-                <Badge
-                  variant="destructive"
-                  className="text-sm font-bold shadow-md"
-                >
+                <Badge variant="destructive">
                   {currentVariant.discount}% OFF
                 </Badge>
               </>
             )}
           </div>
 
-          {/* Color Selection */}
-          <div className="mb-6">
-            <label className="text-sm font-bold text-zinc-600 dark:text-zinc-300 block mb-3 uppercase tracking-wider">
-              Select Color
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {product.variants.map((variant, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setSelectedVariantIndex(idx)}
-                  className={cn(
-                    "px-4 py-2 rounded-xl border-2 flex items-center gap-2 transition-all font-medium",
-                    selectedVariantIndex === idx
-                      ? "border-zinc-900 bg-zinc-900 text-white shadow-lg scale-105"
-                      : "border-zinc-200/60 bg-white/50 hover:border-zinc-300 hover:bg-white"
-                  )}
-                >
-                  <span
-                    className="w-4 h-4 rounded-full border border-black/10 shadow-sm"
-                    style={{ backgroundColor: variant.colorCode }}
-                  />
-                  {variant.color}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Info Grid */}
-          <div className="grid grid-cols-2 gap-4 mb-8">
-            <div className="p-4 rounded-2xl bg-white/50 dark:bg-white/5 border border-white/20 backdrop-blur-sm">
-              <span className="text-xs text-zinc-500 font-bold uppercase tracking-wider">
-                Size
-              </span>
-              <div className="text-xl font-black mt-1">
-                {currentVariant.size}
+          {/* Variants */}
+          {product.variants?.length > 0 && (
+            <div className="mb-6">
+              <label className="text-sm font-bold text-zinc-600 block mb-3">
+                Select Color
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {product.variants.map((variant, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setSelectedVariantIndex(idx)}
+                    className={cn(
+                      "px-4 py-2 rounded-xl border-2 flex items-center gap-2 transition-all",
+                      selectedVariantIndex === idx
+                        ? "border-zinc-900 bg-zinc-900 text-white"
+                        : "border-zinc-200 hover:border-zinc-300"
+                    )}
+                  >
+                    <span
+                      className="w-4 h-4 rounded-full border"
+                      style={{ backgroundColor: variant.colorCode }}
+                    />
+                    {variant.colorName || variant.color}
+                  </button>
+                ))}
               </div>
             </div>
-            <div className="p-4 rounded-2xl bg-white/50 dark:bg-white/5 border border-white/20 backdrop-blur-sm">
-              <span className="text-xs text-zinc-500 font-bold uppercase tracking-wider">
-                Status
-              </span>
+          )}
+
+          {/* Stock */}
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800">
+              <span className="text-xs text-zinc-500">Size</span>
+              <div className="font-bold">{currentVariant?.size || "N/A"}</div>
+            </div>
+            <div className="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800">
+              <span className="text-xs text-zinc-500">Status</span>
               <div
                 className={cn(
-                  "text-xl font-black mt-1",
-                  currentVariant.stock > 0 ? "text-emerald-600" : "text-red-500"
+                  "font-bold",
+                  isOutOfStock ? "text-red-500" : "text-green-500"
                 )}
               >
-                {currentVariant.stock > 0 ? "In Stock" : "Sold Out"}
+                {isOutOfStock
+                  ? "Out of Stock"
+                  : `${currentVariant.stock} In Stock`}
               </div>
             </div>
           </div>
 
-          {/* Action Button */}
-          <div className="flex gap-3 mt-auto pt-4">
-            <Button
-              variant="outline"
-              className="flex-1 h-14 text-lg font-bold rounded-xl border-2 border-zinc-200 hover:bg-zinc-50 hover:text-zinc-900 bg-transparent"
-              disabled={currentVariant.stock <= 0}
-            >
-              <BookImage className="mr-2 w-5 h-5" />
-              <Link prefetch={true} href={`/shop/${product._id}`}>
+          {/* Error Message */}
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
+              {error}
+            </div>
+          )}
+
+          {/* Success Message */}
+          {justAdded && (
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-xl text-green-600 text-sm flex items-center gap-2">
+              <Check className="w-4 h-4" />
+              Added to cart successfully!
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="flex gap-3 mt-auto">
+            <Button variant="outline" className="flex-1 h-12" asChild>
+              <Link href={`/shop/${product._id}`}>
+                <BookImage className="mr-2 w-5 h-5" />
                 Details
               </Link>
             </Button>
+
             <Button
-              className="flex-[2] h-14 text-lg font-bold rounded-xl bg-orange-600 hover:bg-orange-700 text-white shadow-lg shadow-orange-600/20"
-              disabled={currentVariant.stock <= 0}
-              onClick={() => handleAddToCart()}
+              className={cn(
+                "flex-[2] h-12",
+                justAdded
+                  ? "bg-green-500 hover:bg-green-600"
+                  : "bg-orange-600 hover:bg-orange-700"
+              )}
+              disabled={isOutOfStock || addToCart.isPending}
+              onClick={handleAddToCart}
             >
-              <ShoppingCart className="mr-2 w-5 h-5" />
-              {currentVariant.stock > 0 ? "Add to Cart" : "Out of Stock"}
+              {addToCart.isPending ? (
+                <>
+                  <Loader2 className="mr-2 w-5 h-5 animate-spin" />
+                  Adding...
+                </>
+              ) : justAdded ? (
+                <>
+                  <Check className="mr-2 w-5 h-5" />
+                  Added!
+                </>
+              ) : (
+                <>
+                  <ShoppingCart className="mr-2 w-5 h-5" />
+                  {isOutOfStock ? "Out of Stock" : "Add to Cart"}
+                </>
+              )}
             </Button>
           </div>
         </div>

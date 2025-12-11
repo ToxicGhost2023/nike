@@ -53,6 +53,7 @@ export const authOptions = {
   callbacks: {
     async jwt({ token, user, account, profile }) {
       if (user) {
+        token.id = user.id;
         token.fullName = user.fullName || profile?.name || "";
         token.role = user.role || "user";
       }
@@ -79,7 +80,9 @@ export const authOptions = {
 
           await users.insertOne(newUser);
           token.role = "user";
+          token.id = res.insertedId.toString();
         } else {
+          token.id = existing._id.toString();
           token.role = existing.role;
         }
       }
@@ -88,6 +91,7 @@ export const authOptions = {
     },
 
     async session({ session, token }) {
+      session.user.id = token.id;
       session.user.fullName = token.fullName;
       session.user.role = token.role;
       return session;

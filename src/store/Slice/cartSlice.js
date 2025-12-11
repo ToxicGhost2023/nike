@@ -1,74 +1,30 @@
+// store/Slice/cartSlice.js
+
 import { createSlice } from "@reduxjs/toolkit";
 
-const initialState = {
-  search: "",
-  filters: {
-    brand: "",
-    category: "",
-    color: "",
-    bestSeller: false,
-    minPrice: "",
-    maxPrice: "",
+const cartSlice = createSlice({
+  name: "cart",
+  initialState: {
+    isCartOpen: false,
+    isCheckoutLoading: false,
   },
-  pagination: {
-    page: 1,
-    limit: 12,
-  },
-};
-
-const productSlice = createSlice({
-  name: "products",
-  initialState,
   reducers: {
-    setSearch: (state, action) => {
-      state.search = action.payload;
-      state.pagination.page = 1; // با تغییر سرچ برگرد به صفحه اول
+    openCart: (state) => {
+      state.isCartOpen = true;
     },
-    setFilter: (state, action) => {
-      const { key, value } = action.payload;
-      state.filters[key] = value;
-      state.pagination.page = 1;
+    closeCart: (state) => {
+      state.isCartOpen = false;
     },
-    resetFilters: (state) => {
-      state.filters = {
-        brand: "",
-        category: "",
-        color: "",
-        bestSeller: false,
-        minPrice: "",
-        maxPrice: "",
-      };
-      state.pagination.page = 1;
+    toggleCart: (state) => {
+      state.isCartOpen = !state.isCartOpen;
     },
-    resetAll: (state) => {
-      state.search = "";
-      state.filters = {
-        brand: "",
-        category: "",
-        color: "",
-        bestSeller: false,
-        minPrice: "",
-        maxPrice: "",
-      };
-      state.pagination.page = 1;
-    },
-    setPage: (state, action) => {
-      state.pagination.page = action.payload;
-    },
-    setLimit: (state, action) => {
-      state.pagination.limit = action.payload;
-      state.pagination.page = 1;
+    setCheckoutLoading: (state, action) => {
+      state.isCheckoutLoading = action.payload;
     },
   },
 });
 
-export const {
-  setSearch,
-  setFilter,
-  resetFilters,
-  resetAll,
-  setPage,
-  setLimit,
-} = productSlice.actions;
+export const { openCart, closeCart, toggleCart, setCheckoutLoading } =
+  cartSlice.actions;
 
-export default productSlice.reducer;
+export default cartSlice.reducer;
