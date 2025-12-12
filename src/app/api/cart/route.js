@@ -16,8 +16,21 @@ export async function GET() {
     }
 
     const cart = await Cart.findOne({ userId: session.user.id })
-      .populate("items.product", "title mainImage brand")
+      .populate("items.product", "title mainImage brand variants model")
       .lean();
+
+    if (cart) {
+      cart.items = cart.items.map((item) => {
+        const variant = item.product.variants.find(
+          (v) => v._id.toString() === item.variantId.toString()
+        );
+
+        return {
+          ...item,
+          variant, 
+        };
+      });
+    }
 
     return NextResponse.json(
       cart || {

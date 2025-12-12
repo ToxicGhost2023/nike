@@ -10,8 +10,6 @@ export default function CartBadge() {
   const { data: cart } = useCart();
   const itemCount = cart?.totalItems || cart?.items?.length || 0;
 
-  console.log(itemCount);
-
   return (
     <Button variant="ghost" size="icon" className="relative" asChild>
       <Link href="/cart">

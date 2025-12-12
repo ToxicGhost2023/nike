@@ -6,7 +6,6 @@ export const useCart = () => {
     queryKey: ["cart"],
     queryFn: async () => {
       const { data } = await api.get("/cart");
-      console.log(data, "useCart.js");
       return data;
     },
     staleTime: 1000 * 60 * 5,

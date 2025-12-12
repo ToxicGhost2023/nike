@@ -1,4 +1,4 @@
-// components/shop/ProductsDetails.jsx
+
 
 "use client";
 
